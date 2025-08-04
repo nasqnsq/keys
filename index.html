@@ -1,45 +1,181 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>برنامج محاسبة لمحل جملة</title>
+    <title>المحمود لكافة المواد الغذائية</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
-        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h1, h2 { text-align: center; color: #2c3e50; }
-        label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; margin-top: 20px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; }
-        button:hover { background-color: #2980b9; }
-        #clearButton { background-color: #e74c3c; }
-        #clearButton:hover { background-color: #c0392b; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: right; }
-        th { background-color: #ecf0f1; color: #2c3e50; }
-        tfoot td { font-weight: bold; background-color: #ecf0f1; }
-        tfoot tr:last-child { border-top: 2px solid #2c3e50; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .item-manager button, .invoice-buttons button {
+            width: 48%;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        #clearItemsButton { background-color: #f39c12; }
+        #clearItemsButton:hover { background-color: #e67e22; }
+        #clearInvoiceButton { background-color: #e74c3c; }
+        #clearInvoiceButton:hover { background-color: #c0392b; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            overflow-x: auto;
+            display: block;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        tfoot td {
+            font-weight: bold;
+            background-color: #ecf0f1;
+        }
+
+        tfoot tr:last-child {
+            border-top: 2px solid #2c3e50;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+        }
+
+        .action-buttons button {
+            width: auto;
+            padding: 5px 8px;
+            font-size: 12px;
+            margin: 0 2px;
+            white-space: nowrap;
+        }
+
+        .edit-btn { background-color: #f39c12; }
+        .edit-btn:hover { background-color: #e67e22; }
+        .delete-btn { background-color: #e74c3c; }
+        .delete-btn:hover { background-color: #c0392b; }
     </style>
 </head>
-<body onload="loadInvoice()">
+<body onload="loadData()">
 
 <div class="container">
-    <h1>برنامج محاسبة لمحل جملة</h1>
-   
+    <h1>المحمود لكافة المواد الغذائية</h1>
+    <p style="text-align: center;"></p>
+</div>
+
+<div class="container item-manager">
+    <h2>إدارة الأصناف والمخزون</h2>
     
-    <h2>إضافة صنف جديد</h2>
+    <label for="newItemName">الصنف:</label>
+    <input type="text" id="newItemName">
     
-    <label for="productName">الصنف:</label>
-    <input type="text" id="productName">
+    <label for="newItemPrice">سعر الوحدة بالدولار:</label>
+    <input type="number" id="newItemPrice" min="0.01" step="0.01">
+
+    <label for="newItemQuantity">الكمية بالمخزون:</label>
+    <input type="number" id="newItemQuantity" min="0" value="0">
     
-    <label for="quantity">العدد:</label>
+    <button onclick="addItem()">إضافة صنف جديد</button>
+    <button id="clearItemsButton" onclick="clearItems()">مسح قائمة الأصناف</button>
+    
+    <hr>
+    <h3>قائمة الأصناف المخزنة</h3>
+    <table id="itemsTable">
+        <thead>
+            <tr>
+                <th>الصنف</th>
+                <th>السعر</th>
+                <th>الكمية</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+</div>
+
+<div class="container">
+    <h2>إضافة فاتورة جديدة</h2>
+    
+    <label for="productSelect">الصنف:</label>
+    <select id="productSelect" onchange="updatePrice()">
+        <option value="">اختر صنف...</option>
+    </select>
+    
+    <label for="quantity">العدد المطلوب:</label>
     <input type="number" id="quantity" min="1" value="1">
     
     <label for="price">سعر الوحدة بالدولار:</label>
-    <input type="number" id="price" min="0.01" step="0.01">
+    <input type="number" id="price" min="0.01" step="0.01" readonly>
     
-    <button onclick="addProduct()">إضافة الصنف</button>
-    <button id="clearButton" onclick="clearInvoice()">مسح الفاتورة</button>
+    <button onclick="addProductToInvoice()">إضافة صنف للفاتورة</button>
+    <div class="invoice-buttons">
+      <button id="clearInvoiceButton" onclick="clearInvoice()">مسح الفاتورة</button>
+    </div>
 
     <hr>
     
@@ -51,13 +187,14 @@
                 <th>العدد</th>
                 <th>سعر الوحدة</th>
                 <th>الإجمالي</th>
+                <th>الخيارات</th>
             </tr>
         </thead>
         <tbody>
             </tbody>
         <tfoot>
             <tr>
-                <td colspan="3">الإجمالي الكلي:</td>
+                <td colspan="4">الإجمالي الكلي:</td>
                 <td><span id="totalAmount">0.00</span> دولار</td>
             </tr>
         </tfoot>
@@ -65,36 +202,118 @@
 </div>
 
 <script>
-    let invoiceItems = [];
+    let invoiceItems = []; // قائمة الأصناف في الفاتورة الحالية
+    let storedItems = []; // قائمة الأصناف الثابتة والأسعار والمخزون
 
-    function loadInvoice() {
-        const storedItems = localStorage.getItem('invoice');
-        if (storedItems) {
-            invoiceItems = JSON.parse(storedItems);
-            renderTable();
+    function loadData() {
+        const storedItemsJSON = localStorage.getItem('storedItems');
+        if (storedItemsJSON) {
+            storedItems = JSON.parse(storedItemsJSON);
+        }
+        renderItemsTable();
+        populateProductSelect();
+
+        const invoiceItemsJSON = localStorage.getItem('invoice');
+        if (invoiceItemsJSON) {
+            invoiceItems = JSON.parse(invoiceItemsJSON);
+            renderInvoiceTable();
         }
     }
 
+    function saveItems() {
+        localStorage.setItem('storedItems', JSON.stringify(storedItems));
+    }
+    
     function saveInvoice() {
         localStorage.setItem('invoice', JSON.stringify(invoiceItems));
     }
 
-    function renderTable() {
+    function renderItemsTable() {
+        const tableBody = document.querySelector('#itemsTable tbody');
+        tableBody.innerHTML = '';
+        storedItems.forEach(item => {
+            const newRow = tableBody.insertRow();
+            newRow.insertCell(0).textContent = item.name;
+            newRow.insertCell(1).textContent = parseFloat(item.price).toFixed(2);
+            newRow.insertCell(2).textContent = item.quantity;
+        });
+    }
+
+    function populateProductSelect() {
+        const productSelect = document.getElementById('productSelect');
+        productSelect.innerHTML = '<option value="">اختر صنف...</option>';
+        storedItems.forEach((item, index) => {
+            const option = document.createElement('option');
+            option.value = index; // استخدام الفهرس للوصول إلى الصنف في المصفوفة
+            option.textContent = `${item.name} (${item.quantity} متوفر)`;
+            productSelect.appendChild(option);
+        });
+    }
+
+    function addItem() {
+        const newItemName = document.getElementById('newItemName').value;
+        const newItemPrice = document.getElementById('newItemPrice').value;
+        const newItemQuantity = document.getElementById('newItemQuantity').value;
+
+        if (!newItemName || !newItemPrice || !newItemQuantity) {
+            alert('الرجاء إدخال اسم وسعر وكمية الصنف!');
+            return;
+        }
+        
+        storedItems.push({ name: newItemName, price: parseFloat(newItemPrice), quantity: parseFloat(newItemQuantity) });
+        saveItems();
+        renderItemsTable();
+        populateProductSelect();
+        
+        document.getElementById('newItemName').value = '';
+        document.getElementById('newItemPrice').value = '';
+        document.getElementById('newItemQuantity').value = '0';
+    }
+    
+    function clearItems() {
+        if (confirm('هل أنت متأكد من مسح قائمة الأصناف؟')) {
+            storedItems = [];
+            saveItems();
+            renderItemsTable();
+            populateProductSelect();
+        }
+    }
+
+    function updatePrice() {
+        const selectedIndex = document.getElementById('productSelect').value;
+        const priceInput = document.getElementById('price');
+        if (selectedIndex !== "") {
+            priceInput.value = storedItems[selectedIndex].price;
+        } else {
+            priceInput.value = "";
+        }
+    }
+
+    function renderInvoiceTable() {
         const tableBody = document.querySelector('#invoiceTable tbody');
         tableBody.innerHTML = '';
         let total = 0;
 
-        invoiceItems.forEach(item => {
+        invoiceItems.forEach((item, index) => {
             const newRow = tableBody.insertRow();
+            
             const cell1 = newRow.insertCell(0);
             const cell2 = newRow.insertCell(1);
             const cell3 = newRow.insertCell(2);
             const cell4 = newRow.insertCell(3);
+            const cell5 = newRow.insertCell(4);
 
             cell1.textContent = item.name;
             cell2.textContent = item.quantity;
             cell3.textContent = parseFloat(item.price).toFixed(2);
             cell4.textContent = item.subtotal.toFixed(2);
+            
+            cell5.innerHTML = `
+                <div class="action-buttons">
+                    <button class="edit-btn" onclick="editItem(${index})">✏️</button>
+                    <button class="delete-btn" onclick="deleteItem(${index})">🗑️</button>
+                </div>
+            `;
             
             total += item.subtotal;
         });
@@ -102,39 +321,107 @@
         document.getElementById('totalAmount').textContent = total.toFixed(2);
     }
 
-    function addProduct() {
-        const productName = document.getElementById('productName').value;
-        const quantity = document.getElementById('quantity').value;
-        const price = document.getElementById('price').value;
+    function addProductToInvoice() {
+        const productSelect = document.getElementById('productSelect');
+        const selectedIndex = productSelect.value;
+        const quantityToAdd = parseFloat(document.getElementById('quantity').value);
 
-        if (!productName || !quantity || !price) {
-            alert('الرجاء إدخال جميع البيانات!');
+        if (selectedIndex === "" || isNaN(quantityToAdd) || quantityToAdd <= 0) {
+            alert('الرجاء اختيار صنف وإدخال كمية صحيحة!');
             return;
         }
 
-        const subtotal = parseFloat(quantity) * parseFloat(price);
+        const selectedItem = storedItems[selectedIndex];
+
+        if (quantityToAdd > selectedItem.quantity) {
+            alert(`الكمية المطلوبة غير متوفرة! الكمية المتوفرة: ${selectedItem.quantity}`);
+            return;
+        }
+        
+        // تحديث المخزون
+        selectedItem.quantity -= quantityToAdd;
+        saveItems();
+        renderItemsTable();
+        populateProductSelect();
+
+        const subtotal = quantityToAdd * selectedItem.price;
 
         const newItem = {
-            name: productName,
-            quantity: parseFloat(quantity),
-            price: parseFloat(price),
+            name: selectedItem.name,
+            quantity: quantityToAdd,
+            price: selectedItem.price,
             subtotal: subtotal
         };
 
         invoiceItems.push(newItem);
         saveInvoice();
-        renderTable();
+        renderInvoiceTable();
 
-        document.getElementById('productName').value = '';
         document.getElementById('quantity').value = '1';
         document.getElementById('price').value = '';
+        productSelect.value = "";
+    }
+
+    function deleteItem(index) {
+        if (confirm('هل أنت متأكد من حذف هذا الصنف؟ سيتم إعادته للمخزون.')) {
+            const itemToDelete = invoiceItems[index];
+            const storedItemIndex = storedItems.findIndex(item => item.name === itemToDelete.name);
+            
+            if (storedItemIndex !== -1) {
+                storedItems[storedItemIndex].quantity += itemToDelete.quantity;
+                saveItems();
+                renderItemsTable();
+                populateProductSelect();
+            }
+
+            invoiceItems.splice(index, 1);
+            saveInvoice();
+            renderInvoiceTable();
+        }
+    }
+
+    function editItem(index) {
+        const itemToEdit = invoiceItems[index];
+        if (itemToEdit) {
+            const storedItemIndex = storedItems.findIndex(item => item.name === itemToEdit.name);
+            
+            // إعادة الكمية القديمة للمخزون أولاً
+            if (storedItemIndex !== -1) {
+                storedItems[storedItemIndex].quantity += itemToEdit.quantity;
+                saveItems();
+                renderItemsTable();
+                populateProductSelect();
+            }
+            
+            // ملء حقول الإدخال ببيانات الصنف
+            const productSelect = document.getElementById('productSelect');
+            productSelect.value = storedItemIndex;
+            document.getElementById('quantity').value = itemToEdit.quantity;
+            document.getElementById('price').value = itemToEdit.price;
+
+            // حذف الصنف من الفاتورة لتمكين المستخدم من إضافته مرة أخرى بالكمية الجديدة
+            invoiceItems.splice(index, 1);
+            saveInvoice();
+            renderInvoiceTable();
+            
+            alert('تم نقل بيانات الصنف إلى الأعلى للتعديل. بعد التعديل، اضغط "إضافة صنف للفاتورة".');
+        }
     }
 
     function clearInvoice() {
-        if (confirm('هل أنت متأكد من مسح الفاتورة؟ لن تتمكن من استعادتها.')) {
+        if (confirm('هل أنت متأكد من مسح الفاتورة؟ سيتم إعادة الكميات إلى المخزون.')) {
+            invoiceItems.forEach(item => {
+                const storedItemIndex = storedItems.findIndex(stored => stored.name === item.name);
+                if (storedItemIndex !== -1) {
+                    storedItems[storedItemIndex].quantity += item.quantity;
+                }
+            });
             invoiceItems = [];
+            saveItems();
             saveInvoice();
-            renderTable();
+            renderItemsTable();
+            populateProductSelect();
+            renderInvoiceTable();
         }
     }
 </script>
