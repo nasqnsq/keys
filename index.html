@@ -161,10 +161,8 @@
 <div class="container">
     <h2>إضافة فاتورة جديدة</h2>
     
-    <label for="productSelect">الصنف:</label>
-    <select id="productSelect" onchange="updatePrice()">
-        <option value="">اختر صنف...</option>
-    </select>
+    <label for="productNameInput">الصنف:</label>
+    <input type="text" id="productNameInput">
     
     <label for="quantity">العدد المطلوب:</label>
     <input type="number" id="quantity" min="1" value="1">
@@ -211,7 +209,6 @@
             storedItems = JSON.parse(storedItemsJSON);
         }
         renderItemsTable();
-        populateProductSelect();
 
         const invoiceItemsJSON = localStorage.getItem('invoice');
         if (invoiceItemsJSON) {
@@ -239,31 +236,25 @@
         });
     }
 
-    function populateProductSelect() {
-        const productSelect = document.getElementById('productSelect');
-        productSelect.innerHTML = '<option value="">اختر صنف...</option>';
-        storedItems.forEach((item, index) => {
-            const option = document.createElement('option');
-            option.value = index; // استخدام الفهرس للوصول إلى الصنف في المصفوفة
-            option.textContent = `${item.name} (${item.quantity} متوفر)`;
-            productSelect.appendChild(option);
-        });
-    }
-
     function addItem() {
         const newItemName = document.getElementById('newItemName').value;
         const newItemPrice = document.getElementById('newItemPrice').value;
         const newItemQuantity = document.getElementById('newItemQuantity').value;
 
-        if (!newItemName || !newItemPrice || !newItemQuantity) {
+        if (!newItemName || !newItemPrice || newItemQuantity === null || newItemQuantity === '') {
             alert('الرجاء إدخال اسم وسعر وكمية الصنف!');
+            return;
+        }
+
+        const existingItemIndex = storedItems.findIndex(item => item.name === newItemName);
+        if (existingItemIndex !== -1) {
+            alert('هذا الصنف موجود بالفعل!');
             return;
         }
         
         storedItems.push({ name: newItemName, price: parseFloat(newItemPrice), quantity: parseFloat(newItemQuantity) });
         saveItems();
         renderItemsTable();
-        populateProductSelect();
         
         document.getElementById('newItemName').value = '';
         document.getElementById('newItemPrice').value = '';
@@ -275,17 +266,6 @@
             storedItems = [];
             saveItems();
             renderItemsTable();
-            populateProductSelect();
-        }
-    }
-
-    function updatePrice() {
-        const selectedIndex = document.getElementById('productSelect').value;
-        const priceInput = document.getElementById('price');
-        if (selectedIndex !== "") {
-            priceInput.value = storedItems[selectedIndex].price;
-        } else {
-            priceInput.value = "";
         }
     }
 
@@ -322,27 +302,31 @@
     }
 
     function addProductToInvoice() {
-        const productSelect = document.getElementById('productSelect');
-        const selectedIndex = productSelect.value;
+        const productName = document.getElementById('productNameInput').value;
         const quantityToAdd = parseFloat(document.getElementById('quantity').value);
 
-        if (selectedIndex === "" || isNaN(quantityToAdd) || quantityToAdd <= 0) {
-            alert('الرجاء اختيار صنف وإدخال كمية صحيحة!');
+        if (!productName || isNaN(quantityToAdd) || quantityToAdd <= 0) {
+            alert('الرجاء إدخال اسم صنف وكمية صحيحة!');
             return;
         }
 
-        const selectedItem = storedItems[selectedIndex];
+        const storedItemIndex = storedItems.findIndex(item => item.name === productName);
+
+        if (storedItemIndex === -1) {
+            alert(`الصنف "${productName}" غير موجود في المخزون.`);
+            return;
+        }
+
+        const selectedItem = storedItems[storedItemIndex];
 
         if (quantityToAdd > selectedItem.quantity) {
             alert(`الكمية المطلوبة غير متوفرة! الكمية المتوفرة: ${selectedItem.quantity}`);
             return;
         }
         
-        // تحديث المخزون
         selectedItem.quantity -= quantityToAdd;
         saveItems();
         renderItemsTable();
-        populateProductSelect();
 
         const subtotal = quantityToAdd * selectedItem.price;
 
@@ -357,9 +341,9 @@
         saveInvoice();
         renderInvoiceTable();
 
+        document.getElementById('productNameInput').value = '';
         document.getElementById('quantity').value = '1';
         document.getElementById('price').value = '';
-        productSelect.value = "";
     }
 
     function deleteItem(index) {
@@ -371,7 +355,6 @@
                 storedItems[storedItemIndex].quantity += itemToDelete.quantity;
                 saveItems();
                 renderItemsTable();
-                populateProductSelect();
             }
 
             invoiceItems.splice(index, 1);
@@ -385,21 +368,16 @@
         if (itemToEdit) {
             const storedItemIndex = storedItems.findIndex(item => item.name === itemToEdit.name);
             
-            // إعادة الكمية القديمة للمخزون أولاً
             if (storedItemIndex !== -1) {
                 storedItems[storedItemIndex].quantity += itemToEdit.quantity;
                 saveItems();
                 renderItemsTable();
-                populateProductSelect();
             }
             
-            // ملء حقول الإدخال ببيانات الصنف
-            const productSelect = document.getElementById('productSelect');
-            productSelect.value = storedItemIndex;
+            document.getElementById('productNameInput').value = itemToEdit.name;
             document.getElementById('quantity').value = itemToEdit.quantity;
             document.getElementById('price').value = itemToEdit.price;
 
-            // حذف الصنف من الفاتورة لتمكين المستخدم من إضافته مرة أخرى بالكمية الجديدة
             invoiceItems.splice(index, 1);
             saveInvoice();
             renderInvoiceTable();
@@ -420,7 +398,6 @@
             saveItems();
             saveInvoice();
             renderItemsTable();
-            populateProductSelect();
             renderInvoiceTable();
         }
     }
