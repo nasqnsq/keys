@@ -109,6 +109,10 @@
         tfoot tr:last-child {
             border-top: 2px solid #2c3e50;
         }
+        
+        .payment-info td {
+            background-color: #f9f9f9;
+        }
 
         .action-buttons {
             display: flex;
@@ -223,6 +227,14 @@
                 <td colspan="4">الإجمالي الكلي:</td>
                 <td><span id="totalAmount">0.00</span> دولار</td>
             </tr>
+            <tr class="payment-info">
+                <td colspan="4">المبلغ المدفوع:</td>
+                <td><input type="number" id="paidAmount" min="0" value="0" oninput="calculateRemaining()"></td>
+            </tr>
+            <tr class="payment-info">
+                <td colspan="4">المبلغ المتبقي:</td>
+                <td><span id="remainingAmount">0.00</span> دولار</td>
+            </tr>
         </tfoot>
     </table>
 </div>
@@ -325,6 +337,14 @@
         });
         
         document.getElementById('totalAmount').textContent = total.toFixed(2);
+        calculateRemaining();
+    }
+    
+    function calculateRemaining() {
+        const totalAmount = parseFloat(document.getElementById('totalAmount').textContent);
+        const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
+        const remaining = totalAmount - paidAmount;
+        document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
     }
 
     function addProductToInvoice() {
