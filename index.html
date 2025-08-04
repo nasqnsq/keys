@@ -128,17 +128,24 @@
         .delete-btn { background-color: #e74c3c; }
         .delete-btn:hover { background-color: #c0392b; }
         
-        /* إخفاء عناصر التحكم عند الطباعة */
+        /* إخفاء كل العناصر ما عدا الفاتورة عند الطباعة */
         @media print {
-            .container:not(.invoice-to-print) {
+            body > *:not(.invoice-container) {
                 display: none;
             }
-            .invoice-to-print h1, .invoice-to-print h2 {
-                 text-align: right;
-            }
-            .invoice-to-print {
+            .invoice-container {
+                display: block;
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
                 border: none;
                 box-shadow: none;
+            }
+            .invoice-container h1, .invoice-container h2 {
+                 text-align: right;
+            }
+            .invoice-container .print-hide {
+                display: none;
             }
         }
     </style>
@@ -147,20 +154,16 @@
 
 <div class="container">
     <h1>المحمود لكافة المواد الغذائية</h1>
-    <p style="text-align: center;"></p>
 </div>
 
 <div class="container item-manager">
-    <h2>إدارة الأصناف والمخزون</h2>
+    <h2>إدارة الأصناف والأسعار</h2>
     
     <label for="newItemName">الصنف:</label>
     <input type="text" id="newItemName">
     
     <label for="newItemPrice">سعر الوحدة بالدولار:</label>
     <input type="number" id="newItemPrice" min="0.01" step="0.01">
-
-    <label for="newItemQuantity">الكمية بالمخزون:</label>
-    <input type="number" id="newItemQuantity" min="0" value="0">
     
     <button onclick="addItem()">إضافة صنف جديد</button>
     <button id="clearItemsButton" onclick="clearItems()">مسح قائمة الأصناف</button>
@@ -172,7 +175,6 @@
             <tr>
                 <th>الصنف</th>
                 <th>السعر</th>
-                <th>الكمية</th>
             </tr>
         </thead>
         <tbody>
@@ -180,33 +182,35 @@
     </table>
 </div>
 
-<div class="container invoice-to-print">
-    <h2>إضافة فاتورة جديدة</h2>
-    
-    <label for="productNameInput">الصنف:</label>
-    <input type="text" id="productNameInput">
-    
-    <label for="quantity">العدد المطلوب:</label>
-    <input type="number" id="quantity" min="1" value="1">
-    
-    <label for="price">سعر الوحدة بالدولار:</label>
-    <input type="number" id="price" min="0.01" step="0.01" readonly>
-    
-    <button onclick="addProductToInvoice()">إضافة صنف للفاتورة</button>
-    
-    <div class="invoice-buttons">
-      <button id="clearInvoiceButton" onclick="clearInvoice()">مسح الفاتورة</button>
-      <button id="printButton" onclick="printInvoice()">طباعة الفاتورة</button>
+<div class="container invoice-container">
+    <div class="print-hide">
+        <h2>إضافة فاتورة جديدة</h2>
+        
+        <label for="productNameInput">الصنف:</label>
+        <input type="text" id="productNameInput">
+        
+        <label for="quantity">عدد القطع المطلوب:</label>
+        <input type="number" id="quantity" min="1" value="1">
+        
+        <label for="price">سعر الوحدة بالدولار:</label>
+        <input type="number" id="price" min="0.01" step="0.01" readonly>
+        
+        <button onclick="addProductToInvoice()">إضافة صنف للفاتورة</button>
+        
+        <div class="invoice-buttons">
+          <button id="clearInvoiceButton" onclick="clearInvoice()">مسح الفاتورة</button>
+          <button id="printButton" onclick="printInvoice()">طباعة الفاتورة</button>
+        </div>
+        
+        <hr>
     </div>
-
-    <hr>
     
     <h2>تفاصيل الفاتورة</h2>
     <table id="invoiceTable">
         <thead>
             <tr>
                 <th>الصنف</th>
-                <th>العدد</th>
+                <th>عدد القطع</th>
                 <th>سعر الوحدة</th>
                 <th>الإجمالي</th>
                 <th class="print-hide">الخيارات</th>
@@ -256,17 +260,15 @@
             const newRow = tableBody.insertRow();
             newRow.insertCell(0).textContent = item.name;
             newRow.insertCell(1).textContent = parseFloat(item.price).toFixed(2);
-            newRow.insertCell(2).textContent = item.quantity;
         });
     }
 
     function addItem() {
         const newItemName = document.getElementById('newItemName').value;
         const newItemPrice = document.getElementById('newItemPrice').value;
-        const newItemQuantity = document.getElementById('newItemQuantity').value;
 
-        if (!newItemName || !newItemPrice || newItemQuantity === null || newItemQuantity === '') {
-            alert('الرجاء إدخال اسم وسعر وكمية الصنف!');
+        if (!newItemName || !newItemPrice) {
+            alert('الرجاء إدخال اسم وسعر الصنف!');
             return;
         }
 
@@ -276,13 +278,12 @@
             return;
         }
         
-        storedItems.push({ name: newItemName, price: parseFloat(newItemPrice), quantity: parseFloat(newItemQuantity) });
+        storedItems.push({ name: newItemName, price: parseFloat(newItemPrice) });
         saveItems();
         renderItemsTable();
         
         document.getElementById('newItemName').value = '';
         document.getElementById('newItemPrice').value = '';
-        document.getElementById('newItemQuantity').value = '0';
     }
     
     function clearItems() {
@@ -331,34 +332,23 @@
         const quantityToAdd = parseFloat(document.getElementById('quantity').value);
 
         if (!productName || isNaN(quantityToAdd) || quantityToAdd <= 0) {
-            alert('الرجاء إدخال اسم صنف وكمية صحيحة!');
+            alert('الرجاء إدخال اسم صنف وعدد قطع صحيح!');
             return;
         }
 
-        const storedItemIndex = storedItems.findIndex(item => item.name === productName);
+        const storedItem = storedItems.find(item => item.name === productName);
 
-        if (storedItemIndex === -1) {
-            alert(`الصنف "${productName}" غير موجود في المخزون.`);
-            return;
-        }
-
-        const selectedItem = storedItems[storedItemIndex];
-
-        if (quantityToAdd > selectedItem.quantity) {
-            alert(`الكمية المطلوبة غير متوفرة! الكمية المتوفرة: ${selectedItem.quantity}`);
+        if (!storedItem) {
+            alert(`الصنف "${productName}" غير موجود في قائمة الأصناف.`);
             return;
         }
         
-        selectedItem.quantity -= quantityToAdd;
-        saveItems();
-        renderItemsTable();
-
-        const subtotal = quantityToAdd * selectedItem.price;
+        const subtotal = quantityToAdd * storedItem.price;
 
         const newItem = {
-            name: selectedItem.name,
+            name: storedItem.name,
             quantity: quantityToAdd,
-            price: selectedItem.price,
+            price: storedItem.price,
             subtotal: subtotal
         };
 
@@ -372,16 +362,7 @@
     }
 
     function deleteItem(index) {
-        if (confirm('هل أنت متأكد من حذف هذا الصنف؟ سيتم إعادته للمخزون.')) {
-            const itemToDelete = invoiceItems[index];
-            const storedItemIndex = storedItems.findIndex(item => item.name === itemToDelete.name);
-            
-            if (storedItemIndex !== -1) {
-                storedItems[storedItemIndex].quantity += itemToDelete.quantity;
-                saveItems();
-                renderItemsTable();
-            }
-
+        if (confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
             invoiceItems.splice(index, 1);
             saveInvoice();
             renderInvoiceTable();
@@ -391,14 +372,6 @@
     function editItem(index) {
         const itemToEdit = invoiceItems[index];
         if (itemToEdit) {
-            const storedItemIndex = storedItems.findIndex(item => item.name === itemToEdit.name);
-            
-            if (storedItemIndex !== -1) {
-                storedItems[storedItemIndex].quantity += itemToEdit.quantity;
-                saveItems();
-                renderItemsTable();
-            }
-            
             document.getElementById('productNameInput').value = itemToEdit.name;
             document.getElementById('quantity').value = itemToEdit.quantity;
             document.getElementById('price').value = itemToEdit.price;
@@ -412,17 +385,9 @@
     }
 
     function clearInvoice() {
-        if (confirm('هل أنت متأكد من مسح الفاتورة؟ سيتم إعادة الكميات إلى المخزون.')) {
-            invoiceItems.forEach(item => {
-                const storedItemIndex = storedItems.findIndex(stored => stored.name === item.name);
-                if (storedItemIndex !== -1) {
-                    storedItems[storedItemIndex].quantity += item.quantity;
-                }
-            });
+        if (confirm('هل أنت متأكد من مسح الفاتورة؟')) {
             invoiceItems = [];
-            saveItems();
             saveInvoice();
-            renderItemsTable();
             renderInvoiceTable();
         }
     }
