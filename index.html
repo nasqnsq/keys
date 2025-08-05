@@ -11,14 +11,14 @@
             padding: 20px;
             background-color: #f4f7f6;
             color: #333;
-            direction: rtl; /* جعل كل شيء من اليمين لليسار */
+            direction: rtl;
         }
 
         .container {
             max-width: 600px;
             margin: auto;
             padding: 20px;
-            border: 1px solid #ddd;
+            border: 1.5px solid #ddd;
             border-radius: 10px;
             background-color: #fff;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -26,7 +26,7 @@
         }
         
         .invoice-container {
-            max-width: 450px;
+            max-width: 350px;
         }
 
         h1, h2 {
@@ -101,25 +101,26 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            overflow-x: auto;
-            display: block;
             text-align: right;
+            table-layout: fixed;
         }
-
+        
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: right;
-            white-space: nowrap;
+            overflow: hidden;
+            word-wrap: break-word;
+            font-size: 14px; /* Default font size for desktop */
         }
-
+        
         th {
             background-color: #ecf0f1;
             color: #2c3e50;
         }
         
         #invoiceTable th {
-            background-color: #e6f7ff; /* لون الرأس كما في الصورة */
+            background-color: #e6f7ff;
         }
         
         #invoiceTable tfoot {
@@ -157,15 +158,47 @@
         .delete-btn { background-color: #e74c3c; }
         .delete-btn:hover { background-color: #c0392b; }
         
-        /* تنسيق رأس الفاتورة */
         .invoice-header {
             text-align: right;
             border-bottom: 2px solid #ddd;
             margin-bottom: 20px;
             padding-bottom: 10px;
         }
-
-        /* إخفاء كل العناصر ما عدا الفاتورة عند الطباعة */
+        
+        .invoice-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .invoice-header-content p {
+            margin: 0;
+        }
+        
+        /* Media query for smaller screens (mobile view) */
+        @media only screen and (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .invoice-container {
+                max-width: 100%;
+            }
+            th, td {
+                padding: 5px;
+                font-size: 11px; /* Smaller font size for mobile view */
+            }
+            #invoiceTable th {
+                white-space: nowrap;
+            }
+            #invoiceTable col:nth-child(1) { width: 12%; } /* ملاحظة */
+            #invoiceTable col:nth-child(2) { width: 20%; } /* المجموع */
+            #invoiceTable col:nth-child(3) { width: 12%; } /* السعر */
+            #invoiceTable col:nth-child(4) { width: 10%; } /* الوحدة */
+            #invoiceTable col:nth-child(5) { width: 10%; } /* الكمية */
+            #invoiceTable col:nth-child(6) { width: 25%; } /* المادة */
+            #invoiceTable col:nth-child(7) { display: none; } /* إخفاء الخيارات في العرض */
+        }
+        
         @media print {
             body > *:not(.invoice-container) {
                 display: none;
@@ -184,6 +217,18 @@
             .invoice-container .print-hide {
                 display: none;
             }
+            
+            #invoiceTable th, #invoiceTable td {
+                font-size: 10px; /* أصغر حجم خط للطباعة */
+            }
+            
+            #invoiceTable col:nth-child(1) { width: 25%; }
+            #invoiceTable col:nth-child(2) { width: 15%; }
+            #invoiceTable col:nth-child(3) { width: 10%; }
+            #invoiceTable col:nth-child(4) { width: 10%; }
+            #invoiceTable col:nth-child(5) { width: 10%; }
+            #invoiceTable col:nth-child(6) { width: 20%; }
+            #invoiceTable col:nth-child(7) { width: 10%; }
         }
     </style>
 </head>
@@ -220,12 +265,12 @@
 <div class="container invoice-container">
     <div class="print-hide">
         <h2>إضافة فاتورة جديدة</h2>
-
+        
         <label for="invoiceNumber">رقم الفاتورة:</label>
         <input type="text" id="invoiceNumberInput">
         
-        <label for="customerName">المطلوب من السيد:</label>
-        <input type="text" id="customerNameInput">
+        <label for="customerName">اسم الزبون:</label>
+        <input type="text" id="customerName">
         
         <hr>
         
@@ -255,9 +300,18 @@
     </div>
     
     <div id="invoiceHeader" class="invoice-header">
-        </div>
+    </div>
     
     <table id="invoiceTable">
+        <colgroup>
+            <col style="width: 25%;">
+            <col style="width: 15%;">
+            <col style="width: 10%;">
+            <col style="width: 10%;">
+            <col style="width: 10%;">
+            <col style="width: 20%;">
+            <col class="print-hide" style="width: 10%;">
+        </colgroup>
         <thead>
             <tr>
                 <th>ملاحظة</th>
@@ -306,15 +360,10 @@
             renderInvoiceTable();
         }
         
-        const invoiceNumber = localStorage.getItem('invoiceNumber');
-        if (invoiceNumber) {
-            document.getElementById('invoiceNumberInput').value = invoiceNumber;
-        }
+        const invoiceData = JSON.parse(localStorage.getItem('invoiceHeaderData')) || {};
+        document.getElementById('invoiceNumberInput').value = invoiceData.invoiceNumber || '';
+        document.getElementById('customerName').value = invoiceData.customerName || '';
 
-        const customerName = localStorage.getItem('customerName');
-        if (customerName) {
-            document.getElementById('customerNameInput').value = customerName;
-        }
         renderInvoiceHeader();
     }
 
@@ -327,8 +376,11 @@
     }
     
     function saveInvoiceHeader() {
-        localStorage.setItem('invoiceNumber', document.getElementById('invoiceNumberInput').value);
-        localStorage.setItem('customerName', document.getElementById('customerNameInput').value);
+        const invoiceHeaderData = {
+            invoiceNumber: document.getElementById('invoiceNumberInput').value,
+            customerName: document.getElementById('customerName').value
+        };
+        localStorage.setItem('invoiceHeaderData', JSON.stringify(invoiceHeaderData));
         renderInvoiceHeader();
     }
 
@@ -411,12 +463,19 @@
     
     function renderInvoiceHeader() {
         const invoiceNumber = document.getElementById('invoiceNumberInput').value;
-        const customerName = document.getElementById('customerNameInput').value;
+        const customerName = document.getElementById('customerName').value;
         const invoiceHeaderDiv = document.getElementById('invoiceHeader');
 
         let headerHTML = `
-            <p>فاتورة مبيعات رقم: ${invoiceNumber || '---'}</p>
-            <p>المطلوب من السيد: ${customerName || '---'}</p>
+            <div style="text-align: center;">
+                <p style="font-size: 14px; margin-bottom: 0;"></p>
+                <h1 style="margin-top: 5px;">المحمود لكافة المواد الغذائية</h1>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 14px;">
+                <p style="text-align: right; margin: 0;"><strong>رقم الفاتورة:</strong> ${invoiceNumber || '---'}</p>
+                <p style="text-align: center; margin: 0;"><strong>اسم الزبون:</strong> ${customerName || '---'}</p>
+                <p style="text-align: left; margin: 0;"><strong>رقم الهاتف:</strong> +905364253975</p>
+            </div>
             <hr class="print-hide">
         `;
         invoiceHeaderDiv.innerHTML = headerHTML;
@@ -430,7 +489,6 @@
         invoiceItems.forEach((item, index) => {
             const newRow = tableBody.insertRow();
             
-            // ترتيب الأعمدة من اليمين لليسار
             newRow.insertCell(0).textContent = item.notes || '';
             newRow.insertCell(1).textContent = item.subtotal.toFixed(2);
             newRow.insertCell(2).textContent = parseFloat(item.price).toFixed(2);
@@ -531,18 +589,20 @@
     function clearInvoice() {
         if (confirm('هل أنت متأكد من مسح الفاتورة؟')) {
             invoiceItems = [];
-            localStorage.removeItem('invoiceNumber');
-            localStorage.removeItem('customerName');
+            localStorage.removeItem('invoiceHeaderData');
             saveInvoice();
             renderInvoiceTable();
             document.getElementById('invoiceNumberInput').value = '';
-            document.getElementById('customerNameInput').value = '';
+            document.getElementById('customerName').value = '';
         }
     }
     
     function printInvoice() {
         window.print();
     }
+    
+    document.getElementById('invoiceNumberInput').addEventListener('input', saveInvoiceHeader);
+    document.getElementById('customerName').addEventListener('input', saveInvoiceHeader);
 </script>
 
 </body>
