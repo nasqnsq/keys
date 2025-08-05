@@ -11,6 +11,7 @@
             padding: 20px;
             background-color: #f4f7f6;
             color: #333;
+            direction: rtl; /* جعل كل شيء من اليمين لليسار */
         }
 
         .container {
@@ -23,10 +24,19 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+        
+        /* جعل الفاتورة أرفع بشكل أكبر */
+        .invoice-container {
+            max-width: 350px;
+        }
 
         h1, h2 {
-            text-align: center;
+            text-align: right; /* محاذاة العناوين لليمين */
             color: #2c3e50;
+        }
+
+        p {
+            text-align: right;
         }
 
         label {
@@ -34,6 +44,7 @@
             margin-top: 15px;
             font-weight: bold;
             color: #555;
+            text-align: right;
         }
 
         input[type="text"], input[type="number"], select {
@@ -43,6 +54,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
+            text-align: right;
         }
 
         button {
@@ -67,6 +79,11 @@
             margin-top: 10px;
             display: inline-block;
         }
+
+        .invoice-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
         
         .invoice-buttons #printButton {
             background-color: #27ae60;
@@ -87,6 +104,7 @@
             margin-top: 20px;
             overflow-x: auto;
             display: block;
+            text-align: right;
         }
 
         th, td {
@@ -118,7 +136,7 @@
             display: flex;
             justify-content: center;
         }
-
+        
         .action-buttons button {
             width: auto;
             padding: 5px 8px;
@@ -136,6 +154,48 @@
         .edit-btn:hover { background-color: #e67e22; }
         .delete-btn { background-color: #e74c3c; }
         .delete-btn:hover { background-color: #c0392b; }
+        
+        /* تنسيق الفاتورة العمودية */
+        #invoice-items-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .invoice-item-card {
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #fafafa;
+        }
+        
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .item-details span {
+            font-weight: bold;
+        }
+
+        /* تنسيق قسم الإجماليات */
+        .invoice-summary {
+            margin-top: 20px;
+            border-top: 2px solid #2c3e50;
+            padding-top: 10px;
+        }
+        
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .summary-line .label {
+            font-weight: bold;
+        }
         
         /* إخفاء كل العناصر ما عدا الفاتورة عند الطباعة */
         @media print {
@@ -161,11 +221,8 @@
 </head>
 <body onload="loadData()">
 
-<div class="container">
-    <h1>المحمود لكافة المواد الغذائية</h1>
-</div>
-
 <div class="container item-manager">
+    <h1>المحمود لكافة المواد الغذائية</h1>
     <h2>إدارة الأصناف والأسعار</h2>
     
     <label for="newItemName">الصنف:</label>
@@ -193,6 +250,7 @@
 </div>
 
 <div class="container invoice-container">
+    <h1>المحمود لكافة المواد الغذائية</h1>
     <div class="print-hide">
         <h2>إضافة فاتورة جديدة</h2>
         
@@ -216,33 +274,23 @@
     </div>
     
     <h2>تفاصيل الفاتورة</h2>
-    <table id="invoiceTable">
-        <thead>
-            <tr>
-                <th>الصنف</th>
-                <th>عدد القطع</th>
-                <th>سعر الوحدة</th>
-                <th>الإجمالي</th>
-                <th class="print-hide">الخيارات</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4">الإجمالي الكلي:</td>
-                <td><span id="totalAmount">0.00</span> دولار</td>
-            </tr>
-            <tr class="payment-info">
-                <td colspan="4">المبلغ المدفوع:</td>
-                <td><input type="number" id="paidAmount" min="0" value="0" oninput="calculateRemaining()"></td>
-            </tr>
-            <tr class="payment-info">
-                <td colspan="4">المبلغ المتبقي:</td>
-                <td><span id="remainingAmount">0.00</span> دولار</td>
-            </tr>
-        </tfoot>
-    </table>
+    <div id="invoice-items-list">
+        </div>
+
+    <div class="invoice-summary">
+        <div class="summary-line">
+            <span class="label">الإجمالي الكلي:</span>
+            <span><span id="totalAmount">0.00</span> دولار</span>
+        </div>
+        <div class="summary-line">
+            <span class="label">المبلغ المدفوع:</span>
+            <input type="number" id="paidAmount" min="0" value="0" oninput="calculateRemaining()">
+        </div>
+        <div class="summary-line">
+            <span class="label">المبلغ المتبقي:</span>
+            <span><span id="remainingAmount">0.00</span> دولار</span>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -352,31 +400,30 @@
     }
 
     function renderInvoiceTable() {
-        const tableBody = document.querySelector('#invoiceTable tbody');
-        tableBody.innerHTML = '';
+        const invoiceList = document.getElementById('invoice-items-list');
+        invoiceList.innerHTML = '';
         let total = 0;
 
         invoiceItems.forEach((item, index) => {
-            const newRow = tableBody.insertRow();
+            const itemCard = document.createElement('div');
+            itemCard.classList.add('invoice-item-card');
             
-            const cell1 = newRow.insertCell(0);
-            const cell2 = newRow.insertCell(1);
-            const cell3 = newRow.insertCell(2);
-            const cell4 = newRow.insertCell(3);
-            const cell5 = newRow.insertCell(4);
-            cell5.classList.add('print-hide');
-
-            cell1.textContent = item.name;
-            cell2.textContent = item.quantity;
-            cell3.textContent = parseFloat(item.price).toFixed(2);
-            cell4.textContent = item.subtotal.toFixed(2);
-            
-            cell5.innerHTML = `
-                <div class="action-buttons">
-                    <button class="edit-btn" onclick="editItem(${index})">✏️</button>
-                    <button class="delete-btn" onclick="deleteItem(${index})">🗑️</button>
+            itemCard.innerHTML = `
+                <div class="item-details">
+                    <span>${item.name}</span>
+                    <div class="print-hide action-buttons">
+                        <button class="edit-btn" onclick="editItem(${index})">✏️</button>
+                        <button class="delete-btn" onclick="deleteItem(${index})">🗑️</button>
+                    </div>
+                </div>
+                <div class="item-details">
+                    <span>عدد القطع: ${item.quantity}</span>
+                    <span>سعر الوحدة: ${parseFloat(item.price).toFixed(2)} دولار</span>
+                    <span>الإجمالي: ${item.subtotal.toFixed(2)} دولار</span>
                 </div>
             `;
+            
+            invoiceList.appendChild(itemCard);
             
             total += item.subtotal;
         });
