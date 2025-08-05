@@ -25,13 +25,12 @@
             margin-bottom: 20px;
         }
         
-        /* جعل الفاتورة أرفع بشكل أكبر */
         .invoice-container {
-            max-width: 350px;
+            max-width: 450px;
         }
 
         h1, h2 {
-            text-align: right; /* محاذاة العناوين لليمين */
+            text-align: right;
             color: #2c3e50;
         }
 
@@ -118,16 +117,19 @@
             background-color: #ecf0f1;
             color: #2c3e50;
         }
-
-        tfoot td {
-            font-weight: bold;
-            background-color: #ecf0f1;
-        }
-
-        tfoot tr:last-child {
-            border-top: 2px solid #2c3e50;
+        
+        #invoiceTable th {
+            background-color: #e6f7ff; /* لون الرأس كما في الصورة */
         }
         
+        #invoiceTable tfoot {
+            font-weight: bold;
+        }
+        
+        #invoiceTable tfoot tr:last-child {
+            border-top: 2px solid #2c3e50;
+        }
+
         .payment-info td {
             background-color: #f9f9f9;
         }
@@ -155,48 +157,14 @@
         .delete-btn { background-color: #e74c3c; }
         .delete-btn:hover { background-color: #c0392b; }
         
-        /* تنسيق الفاتورة العمودية */
-        #invoice-items-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .invoice-item-card {
-            border: 1px solid #eee;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            background-color: #fafafa;
-        }
-        
-        .item-details {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-        
-        .item-details span {
-            font-weight: bold;
+        /* تنسيق رأس الفاتورة */
+        .invoice-header {
+            text-align: right;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
         }
 
-        /* تنسيق قسم الإجماليات */
-        .invoice-summary {
-            margin-top: 20px;
-            border-top: 2px solid #2c3e50;
-            padding-top: 10px;
-        }
-        
-        .summary-line {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-        
-        .summary-line .label {
-            font-weight: bold;
-        }
-        
         /* إخفاء كل العناصر ما عدا الفاتورة عند الطباعة */
         @media print {
             body > *:not(.invoice-container) {
@@ -250,18 +218,31 @@
 </div>
 
 <div class="container invoice-container">
-    <h1>المحمود لكافة المواد الغذائية</h1>
     <div class="print-hide">
         <h2>إضافة فاتورة جديدة</h2>
+
+        <label for="invoiceNumber">رقم الفاتورة:</label>
+        <input type="text" id="invoiceNumberInput">
+        
+        <label for="customerName">المطلوب من السيد:</label>
+        <input type="text" id="customerNameInput">
+        
+        <hr>
         
         <label for="productNameInput">الصنف:</label>
         <input type="text" id="productNameInput">
         
-        <label for="quantity">عدد القطع المطلوب:</label>
+        <label for="quantity">عدد القطع:</label>
         <input type="number" id="quantity" min="1" value="1">
+        
+        <label for="unit">الوحدة (كغم، علبة...):</label>
+        <input type="text" id="unit">
         
         <label for="price">سعر الوحدة بالدولار:</label>
         <input type="number" id="price" min="0.01" step="0.01" readonly>
+
+        <label for="notes">ملاحظة:</label>
+        <input type="text" id="notes">
         
         <button onclick="addProductToInvoice()">إضافة صنف للفاتورة</button>
         
@@ -273,30 +254,44 @@
         <hr>
     </div>
     
-    <h2>تفاصيل الفاتورة</h2>
-    <div id="invoice-items-list">
+    <div id="invoiceHeader" class="invoice-header">
         </div>
-
-    <div class="invoice-summary">
-        <div class="summary-line">
-            <span class="label">الإجمالي الكلي:</span>
-            <span><span id="totalAmount">0.00</span> دولار</span>
-        </div>
-        <div class="summary-line">
-            <span class="label">المبلغ المدفوع:</span>
-            <input type="number" id="paidAmount" min="0" value="0" oninput="calculateRemaining()">
-        </div>
-        <div class="summary-line">
-            <span class="label">المبلغ المتبقي:</span>
-            <span><span id="remainingAmount">0.00</span> دولار</span>
-        </div>
-    </div>
+    
+    <table id="invoiceTable">
+        <thead>
+            <tr>
+                <th>ملاحظة</th>
+                <th>المجموع</th>
+                <th>السعر</th>
+                <th>الوحدة</th>
+                <th>الكمية</th>
+                <th>المادة</th>
+                <th class="print-hide">الخيارات</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6">الإجمالي الكلي:</td>
+                <td><span id="totalAmount">0.00</span> دولار</td>
+            </tr>
+            <tr class="payment-info">
+                <td colspan="6">المبلغ المدفوع:</td>
+                <td><input type="number" id="paidAmount" min="0" value="0" oninput="calculateRemaining()"></td>
+            </tr>
+            <tr class="payment-info">
+                <td colspan="6">المبلغ المتبقي:</td>
+                <td><span id="remainingAmount">0.00</span> دولار</td>
+            </tr>
+        </tfoot>
+    </table>
 </div>
 
 <script>
     let invoiceItems = [];
     let storedItems = [];
-    let editingStoredItemIndex = -1; // -1 يعني لا يوجد صنف يتم تعديله حالياً
+    let editingStoredItemIndex = -1;
 
     function loadData() {
         const storedItemsJSON = localStorage.getItem('storedItems');
@@ -310,6 +305,17 @@
             invoiceItems = JSON.parse(invoiceItemsJSON);
             renderInvoiceTable();
         }
+        
+        const invoiceNumber = localStorage.getItem('invoiceNumber');
+        if (invoiceNumber) {
+            document.getElementById('invoiceNumberInput').value = invoiceNumber;
+        }
+
+        const customerName = localStorage.getItem('customerName');
+        if (customerName) {
+            document.getElementById('customerNameInput').value = customerName;
+        }
+        renderInvoiceHeader();
     }
 
     function saveItems() {
@@ -318,6 +324,12 @@
     
     function saveInvoice() {
         localStorage.setItem('invoice', JSON.stringify(invoiceItems));
+    }
+    
+    function saveInvoiceHeader() {
+        localStorage.setItem('invoiceNumber', document.getElementById('invoiceNumberInput').value);
+        localStorage.setItem('customerName', document.getElementById('customerNameInput').value);
+        renderInvoiceHeader();
     }
 
     function renderItemsTable() {
@@ -348,14 +360,12 @@
             return;
         }
         
-        // إذا كنا في وضع التعديل
         if (editingStoredItemIndex !== -1) {
             storedItems[editingStoredItemIndex].price = parseFloat(newItemPrice);
             editingStoredItemIndex = -1;
             addItemBtn.textContent = 'إضافة صنف جديد';
             document.getElementById('newItemName').removeAttribute('readonly');
         } else {
-            // إذا كنا في وضع الإضافة
             const existingItemIndex = storedItems.findIndex(item => item.name === newItemName);
             if (existingItemIndex !== -1) {
                 alert('هذا الصنف موجود بالفعل!');
@@ -398,38 +408,51 @@
             renderItemsTable();
         }
     }
+    
+    function renderInvoiceHeader() {
+        const invoiceNumber = document.getElementById('invoiceNumberInput').value;
+        const customerName = document.getElementById('customerNameInput').value;
+        const invoiceHeaderDiv = document.getElementById('invoiceHeader');
+
+        let headerHTML = `
+            <p>فاتورة مبيعات رقم: ${invoiceNumber || '---'}</p>
+            <p>المطلوب من السيد: ${customerName || '---'}</p>
+            <hr class="print-hide">
+        `;
+        invoiceHeaderDiv.innerHTML = headerHTML;
+    }
 
     function renderInvoiceTable() {
-        const invoiceList = document.getElementById('invoice-items-list');
-        invoiceList.innerHTML = '';
+        const tableBody = document.querySelector('#invoiceTable tbody');
+        tableBody.innerHTML = '';
         let total = 0;
 
         invoiceItems.forEach((item, index) => {
-            const itemCard = document.createElement('div');
-            itemCard.classList.add('invoice-item-card');
+            const newRow = tableBody.insertRow();
             
-            itemCard.innerHTML = `
-                <div class="item-details">
-                    <span>${item.name}</span>
-                    <div class="print-hide action-buttons">
-                        <button class="edit-btn" onclick="editItem(${index})">✏️</button>
-                        <button class="delete-btn" onclick="deleteItem(${index})">🗑️</button>
-                    </div>
-                </div>
-                <div class="item-details">
-                    <span>عدد القطع: ${item.quantity}</span>
-                    <span>سعر الوحدة: ${parseFloat(item.price).toFixed(2)} دولار</span>
-                    <span>الإجمالي: ${item.subtotal.toFixed(2)} دولار</span>
+            // ترتيب الأعمدة من اليمين لليسار
+            newRow.insertCell(0).textContent = item.notes || '';
+            newRow.insertCell(1).textContent = item.subtotal.toFixed(2);
+            newRow.insertCell(2).textContent = parseFloat(item.price).toFixed(2);
+            newRow.insertCell(3).textContent = item.unit;
+            newRow.insertCell(4).textContent = item.quantity;
+            newRow.insertCell(5).textContent = item.name;
+            
+            const actionCell = newRow.insertCell(6);
+            actionCell.classList.add('print-hide');
+            actionCell.innerHTML = `
+                <div class="action-buttons">
+                    <button class="edit-btn" onclick="editItem(${index})">✏️</button>
+                    <button class="delete-btn" onclick="deleteItem(${index})">🗑️</button>
                 </div>
             `;
-            
-            invoiceList.appendChild(itemCard);
             
             total += item.subtotal;
         });
         
         document.getElementById('totalAmount').textContent = total.toFixed(2);
         calculateRemaining();
+        renderInvoiceHeader();
     }
     
     function calculateRemaining() {
@@ -442,6 +465,8 @@
     function addProductToInvoice() {
         const productName = document.getElementById('productNameInput').value;
         const quantityToAdd = parseFloat(document.getElementById('quantity').value);
+        const unit = document.getElementById('unit').value;
+        const notes = document.getElementById('notes').value;
 
         if (!productName || isNaN(quantityToAdd) || quantityToAdd <= 0) {
             alert('الرجاء إدخال اسم صنف وعدد قطع صحيح!');
@@ -460,17 +485,22 @@
         const newItem = {
             name: storedItem.name,
             quantity: quantityToAdd,
+            unit: unit,
             price: storedItem.price,
-            subtotal: subtotal
+            subtotal: subtotal,
+            notes: notes
         };
 
         invoiceItems.push(newItem);
         saveInvoice();
+        saveInvoiceHeader();
         renderInvoiceTable();
 
         document.getElementById('productNameInput').value = '';
         document.getElementById('quantity').value = '1';
+        document.getElementById('unit').value = '';
         document.getElementById('price').value = '';
+        document.getElementById('notes').value = '';
     }
 
     function deleteItem(index) {
@@ -486,7 +516,9 @@
         if (itemToEdit) {
             document.getElementById('productNameInput').value = itemToEdit.name;
             document.getElementById('quantity').value = itemToEdit.quantity;
+            document.getElementById('unit').value = itemToEdit.unit;
             document.getElementById('price').value = itemToEdit.price;
+            document.getElementById('notes').value = itemToEdit.notes;
 
             invoiceItems.splice(index, 1);
             saveInvoice();
@@ -499,8 +531,12 @@
     function clearInvoice() {
         if (confirm('هل أنت متأكد من مسح الفاتورة؟')) {
             invoiceItems = [];
+            localStorage.removeItem('invoiceNumber');
+            localStorage.removeItem('customerName');
             saveInvoice();
             renderInvoiceTable();
+            document.getElementById('invoiceNumberInput').value = '';
+            document.getElementById('customerNameInput').value = '';
         }
     }
     
