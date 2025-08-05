@@ -126,6 +126,11 @@
             margin: 0 2px;
             white-space: nowrap;
         }
+        
+        .edit-stored-btn { background-color: #f39c12; }
+        .edit-stored-btn:hover { background-color: #e67e22; }
+        .delete-stored-btn { background-color: #e74c3c; }
+        .delete-stored-btn:hover { background-color: #c0392b; }
 
         .edit-btn { background-color: #f39c12; }
         .edit-btn:hover { background-color: #e67e22; }
@@ -169,7 +174,7 @@
     <label for="newItemPrice">سعر الوحدة بالدولار:</label>
     <input type="number" id="newItemPrice" min="0.01" step="0.01">
     
-    <button onclick="addItem()">إضافة صنف جديد</button>
+    <button id="addItemBtn" onclick="saveItem()">إضافة صنف جديد</button>
     <button id="clearItemsButton" onclick="clearItems()">مسح قائمة الأصناف</button>
     
     <hr>
@@ -179,6 +184,7 @@
             <tr>
                 <th>الصنف</th>
                 <th>السعر</th>
+                <th>الخيارات</th>
             </tr>
         </thead>
         <tbody>
@@ -242,6 +248,7 @@
 <script>
     let invoiceItems = [];
     let storedItems = [];
+    let editingStoredItemIndex = -1; // -1 يعني لا يوجد صنف يتم تعديله حالياً
 
     function loadData() {
         const storedItemsJSON = localStorage.getItem('storedItems');
@@ -268,34 +275,72 @@
     function renderItemsTable() {
         const tableBody = document.querySelector('#itemsTable tbody');
         tableBody.innerHTML = '';
-        storedItems.forEach(item => {
+        storedItems.forEach((item, index) => {
             const newRow = tableBody.insertRow();
             newRow.insertCell(0).textContent = item.name;
             newRow.insertCell(1).textContent = parseFloat(item.price).toFixed(2);
+            
+            const actionCell = newRow.insertCell(2);
+            actionCell.innerHTML = `
+                <div class="action-buttons">
+                    <button class="edit-stored-btn" onclick="editStoredItem(${index})">تعديل</button>
+                    <button class="delete-stored-btn" onclick="deleteStoredItem(${index})">حذف</button>
+                </div>
+            `;
         });
     }
 
-    function addItem() {
+    function saveItem() {
         const newItemName = document.getElementById('newItemName').value;
         const newItemPrice = document.getElementById('newItemPrice').value;
+        const addItemBtn = document.getElementById('addItemBtn');
 
         if (!newItemName || !newItemPrice) {
             alert('الرجاء إدخال اسم وسعر الصنف!');
             return;
         }
-
-        const existingItemIndex = storedItems.findIndex(item => item.name === newItemName);
-        if (existingItemIndex !== -1) {
-            alert('هذا الصنف موجود بالفعل!');
-            return;
+        
+        // إذا كنا في وضع التعديل
+        if (editingStoredItemIndex !== -1) {
+            storedItems[editingStoredItemIndex].price = parseFloat(newItemPrice);
+            editingStoredItemIndex = -1;
+            addItemBtn.textContent = 'إضافة صنف جديد';
+            document.getElementById('newItemName').removeAttribute('readonly');
+        } else {
+            // إذا كنا في وضع الإضافة
+            const existingItemIndex = storedItems.findIndex(item => item.name === newItemName);
+            if (existingItemIndex !== -1) {
+                alert('هذا الصنف موجود بالفعل!');
+                return;
+            }
+            
+            storedItems.push({ name: newItemName, price: parseFloat(newItemPrice) });
         }
         
-        storedItems.push({ name: newItemName, price: parseFloat(newItemPrice) });
         saveItems();
         renderItemsTable();
         
         document.getElementById('newItemName').value = '';
         document.getElementById('newItemPrice').value = '';
+    }
+    
+    function editStoredItem(index) {
+        const itemToEdit = storedItems[index];
+        if (itemToEdit) {
+            editingStoredItemIndex = index;
+            document.getElementById('newItemName').value = itemToEdit.name;
+            document.getElementById('newItemPrice').value = itemToEdit.price;
+            document.getElementById('newItemName').setAttribute('readonly', 'readonly');
+            document.getElementById('addItemBtn').textContent = 'تحديث الصنف';
+        }
+    }
+    
+    function deleteStoredItem(index) {
+        if (confirm(`هل أنت متأكد من حذف الصنف "${storedItems[index].name}"؟`)) {
+            storedItems.splice(index, 1);
+            saveItems();
+            renderItemsTable();
+        }
     }
     
     function clearItems() {
