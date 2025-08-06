@@ -13,11 +13,18 @@
             color: #333;
             direction: rtl;
             font-size: 10px;
+            
+            /* تعديل جديد: جعل الجسم حاوية مرنة */
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
         }
 
         .main-header {
             text-align: center;
             margin-bottom: 5px;
+            flex-shrink: 0; /* منع تصغير العنوان */
         }
 
         .top-container {
@@ -25,13 +32,15 @@
             flex-direction: row-reverse;
             gap: 5px;
             margin-bottom: 5px;
-            height: 50vh;
+            flex-shrink: 0; /* تعديل جديد: منع تصغير الحاوية العلوية */
+            height: auto; /* تعديل جديد: إزالة الارتفاع الثابت */
         }
 
         .bottom-container {
-            height: calc(50vh - 15px);
             display: flex;
             flex-direction: column;
+            flex-grow: 1; /* تعديل جديد: السماح للحاوية السفلية بالنمو لملء المساحة */
+            height: auto; /* تعديل جديد: إزالة الارتفاع الثابت */
         }
 
         .card {
@@ -73,7 +82,7 @@
 
         label {
             display: block;
-            margin-top: 5px;
+            margin-top: 2px;
             font-weight: bold;
             color: #555;
             text-align: right;
@@ -81,14 +90,14 @@
         }
 
         hr {
-            margin: 5px 0;
+            margin: 3px 0;
             border: 0;
             border-top: 1px solid #eee;
         }
 
         input[type="text"], input[type="number"] {
             width: 100%;
-            padding: 5px;
+            padding: 3px;
             margin-top: 2px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -124,7 +133,7 @@
         .button-group button {
             width: 100%;
             margin-top: 5px;
-            padding: 5px;
+            padding: 4px;
             font-size: 9px;
         }
 
@@ -136,12 +145,6 @@
         #clearInvoiceButton:hover { background-color: #c0392b; }
         #printButton { background-color: #34495e; }
         #printButton:hover { background-color: #2c3e50; }
-        
-        .print-btn-container {
-            padding: 8px;
-            background-color: #fff;
-            border-top: 1px solid #eee;
-        }
         
         table {
             width: 100%;
@@ -292,6 +295,7 @@
                 <button onclick="addProductToInvoice()">إضافة صنف للفاتورة</button>
                 <div class="button-group">
                     <button id="clearInvoiceButton" onclick="clearInvoice()">مسح الفاتورة</button>
+                    <button id="printButton" onclick="printInvoice()">طباعة الفاتورة</button>
                 </div>
             </div>
         </div>
@@ -367,10 +371,6 @@
                         </tr>
                     </tfoot>
                 </table>
-            </div>
-            
-            <div class="print-btn-container print-hide">
-                <button id="printButton" onclick="printInvoice()">طباعة الفاتورة</button>
             </div>
         </div>
     </div>
