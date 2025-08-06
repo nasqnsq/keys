@@ -1,134 +1,176 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
-    <title>المحمود لكافة المواد الغذائية</title>
+    <title>المحمود للمواد الغذائية</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f4f7f6;
+            padding: 5px;
+            background-color: #f0f2f5;
             color: #333;
             direction: rtl;
+            font-size: 10px;
         }
 
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            border: 1.5px solid #ddd;
-            border-radius: 10px;
+        .main-header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .top-container {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 5px;
+            margin-bottom: 5px;
+            height: 50vh;
+        }
+
+        .bottom-container {
+            height: calc(50vh - 15px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card {
             background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .invoice-container {
-            max-width: 350px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 8px;
+            flex-grow: 1;
+            flex-basis: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        h1, h2 {
-            text-align: right;
+        .card-content {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        h1 {
+            font-size: 14px;
+            margin: 5px 0;
             color: #2c3e50;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 12px;
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+            text-align: right;
         }
 
         p {
             text-align: right;
+            font-size: 9px;
+            margin: 2px 0;
         }
 
         label {
             display: block;
-            margin-top: 15px;
+            margin-top: 5px;
             font-weight: bold;
             color: #555;
             text-align: right;
+            font-size: 9px;
         }
 
-        input[type="text"], input[type="number"], select {
+        hr {
+            margin: 5px 0;
+            border: 0;
+            border-top: 1px solid #eee;
+        }
+
+        input[type="text"], input[type="number"] {
             width: 100%;
-            padding: 10px;
-            margin-top: 5px;
+            padding: 5px;
+            margin-top: 2px;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 4px;
             box-sizing: border-box;
             text-align: right;
+            font-size: 9px;
         }
 
         button {
             width: 100%;
-            padding: 12px;
-            margin-top: 20px;
+            padding: 6px;
+            margin-top: 8px;
             background-color: #3498db;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 10px;
             transition: background-color 0.3s;
+            box-sizing: border-box;
         }
 
         button:hover {
             background-color: #2980b9;
         }
 
-        .item-manager button, .invoice-buttons button {
-            width: 48%;
-            margin-top: 10px;
-            display: inline-block;
-        }
-
-        .invoice-buttons {
+        .button-group {
             display: flex;
             justify-content: space-between;
-        }
-        
-        .invoice-buttons #printButton {
-            background-color: #27ae60;
-        }
-        
-        .invoice-buttons #printButton:hover {
-            background-color: #219d54;
+            gap: 3px;
         }
 
+        .button-group button {
+            width: 100%;
+            margin-top: 5px;
+            padding: 5px;
+            font-size: 9px;
+        }
+
+        #addItemBtn { background-color: #27ae60; }
+        #addItemBtn:hover { background-color: #219d54; }
         #clearItemsButton { background-color: #f39c12; }
         #clearItemsButton:hover { background-color: #e67e22; }
         #clearInvoiceButton { background-color: #e74c3c; }
         #clearInvoiceButton:hover { background-color: #c0392b; }
-
+        #printButton { background-color: #34495e; }
+        #printButton:hover { background-color: #2c3e50; }
+        
+        .print-btn-container {
+            padding: 8px;
+            background-color: #fff;
+            border-top: 1px solid #eee;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 5px;
             text-align: right;
             table-layout: fixed;
+            font-size: 8px;
         }
-        
+
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 3px;
             text-align: right;
             overflow: hidden;
             word-wrap: break-word;
-            font-size: 14px; /* Default font size for desktop */
         }
-        
+
         th {
             background-color: #ecf0f1;
             color: #2c3e50;
         }
-        
+
         #invoiceTable th {
             background-color: #e6f7ff;
         }
-        
+
         #invoiceTable tfoot {
             font-weight: bold;
-        }
-        
-        #invoiceTable tfoot tr:last-child {
-            border-top: 2px solid #2c3e50;
         }
 
         .payment-info td {
@@ -138,16 +180,16 @@
         .action-buttons {
             display: flex;
             justify-content: center;
+            gap: 2px;
         }
-        
+
         .action-buttons button {
             width: auto;
-            padding: 5px 8px;
-            font-size: 12px;
-            margin: 0 2px;
-            white-space: nowrap;
+            padding: 2px 4px;
+            font-size: 7px;
+            margin: 0;
         }
-        
+
         .edit-stored-btn { background-color: #f39c12; }
         .edit-stored-btn:hover { background-color: #e67e22; }
         .delete-stored-btn { background-color: #e74c3c; }
@@ -157,190 +199,181 @@
         .edit-btn:hover { background-color: #e67e22; }
         .delete-btn { background-color: #e74c3c; }
         .delete-btn:hover { background-color: #c0392b; }
-        
+
         .invoice-header {
-            text-align: right;
-            border-bottom: 2px solid #ddd;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
         }
-        
-        .invoice-header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
+
         .invoice-header-content p {
-            margin: 0;
+            margin: 2px 0;
+            text-align: center;
         }
-        
-        /* Media query for smaller screens (mobile view) */
-        @media only screen and (max-width: 600px) {
-            .container {
-                padding: 10px;
+
+        /* تنسيقات خاصة بالطباعة */
+        @media print {
+            .print-hide {
+                display: none !important;
             }
-            .invoice-container {
-                max-width: 100%;
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background-color: #fff;
+                padding: 0;
+                margin: 0;
+                font-size: 12px;
+            }
+            .main-header, .top-container {
+                display: none;
+            }
+            .bottom-container {
+                height: auto;
+                padding: 10px;
+                box-shadow: none;
+                width: 100%;
+            }
+            .card.invoice-container {
+                box-shadow: none;
+                max-height: none;
+            }
+            .card-content {
+                overflow-y: visible;
+                padding-bottom: 0;
+            }
+            .invoice-header {
+                border-bottom: 2px solid #000;
+                margin-bottom: 15px;
+            }
+            .invoice-header h1 {
+                font-size: 20px;
+            }
+            .invoice-header p {
+                font-size: 14px;
+            }
+            .invoice-container .print-only {
+                display: block;
+            }
+            table {
+                font-size: 12px;
             }
             th, td {
                 padding: 5px;
-                font-size: 11px; /* Smaller font size for mobile view */
             }
-            #invoiceTable th {
-                white-space: nowrap;
-            }
-            #invoiceTable col:nth-child(1) { width: 12%; } /* ملاحظة */
-            #invoiceTable col:nth-child(2) { width: 20%; } /* المجموع */
-            #invoiceTable col:nth-child(3) { width: 12%; } /* السعر */
-            #invoiceTable col:nth-child(4) { width: 10%; } /* الوحدة */
-            #invoiceTable col:nth-child(5) { width: 10%; } /* الكمية */
-            #invoiceTable col:nth-child(6) { width: 25%; } /* المادة */
-            #invoiceTable col:nth-child(7) { display: none; } /* إخفاء الخيارات في العرض */
-        }
-        
-        @media print {
-            body > *:not(.invoice-container) {
-                display: none;
-            }
-            .invoice-container {
-                display: block;
-                max-width: 100%;
-                margin: 0;
-                padding: 0;
-                border: none;
-                box-shadow: none;
-            }
-            .invoice-container h1, .invoice-container h2 {
-                 text-align: right;
-            }
-            .invoice-container .print-hide {
-                display: none;
-            }
-            
-            #invoiceTable th, #invoiceTable td {
-                font-size: 10px; /* أصغر حجم خط للطباعة */
-            }
-            
-            #invoiceTable col:nth-child(1) { width: 25%; }
-            #invoiceTable col:nth-child(2) { width: 15%; }
-            #invoiceTable col:nth-child(3) { width: 10%; }
-            #invoiceTable col:nth-child(4) { width: 10%; }
-            #invoiceTable col:nth-child(5) { width: 10%; }
-            #invoiceTable col:nth-child(6) { width: 20%; }
-            #invoiceTable col:nth-child(7) { width: 10%; }
         }
     </style>
 </head>
 <body onload="loadData()">
+    <div class="main-header print-hide">
+        <h1>المحمود لكافة المواد الغذائية</h1>
+    </div>
 
-<div class="container item-manager">
-    <h1>المحمود لكافة المواد الغذائية</h1>
-    <h2>إدارة الأصناف والأسعار</h2>
-    
-    <label for="newItemName">الصنف:</label>
-    <input type="text" id="newItemName">
-    
-    <label for="newItemPrice">سعر الوحدة بالدولار:</label>
-    <input type="number" id="newItemPrice" min="0.01" step="0.01">
-    
-    <button id="addItemBtn" onclick="saveItem()">إضافة صنف جديد</button>
-    <button id="clearItemsButton" onclick="clearItems()">مسح قائمة الأصناف</button>
-    
-    <hr>
-    <h3>قائمة الأصناف المخزنة</h3>
-    <table id="itemsTable">
-        <thead>
-            <tr>
-                <th>الصنف</th>
-                <th>السعر</th>
-                <th>الخيارات</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
-</div>
-
-<div class="container invoice-container">
-    <div class="print-hide">
-        <h2>إضافة فاتورة جديدة</h2>
-        
-        <label for="invoiceNumber">رقم الفاتورة:</label>
-        <input type="text" id="invoiceNumberInput">
-        
-        <label for="customerName">اسم الزبون:</label>
-        <input type="text" id="customerName">
-        
-        <hr>
-        
-        <label for="productNameInput">الصنف:</label>
-        <input type="text" id="productNameInput">
-        
-        <label for="quantity">عدد القطع:</label>
-        <input type="number" id="quantity" min="1" value="1">
-        
-        <label for="unit">الوحدة (كغم، علبة...):</label>
-        <input type="text" id="unit">
-        
-        <label for="price">سعر الوحدة بالدولار:</label>
-        <input type="number" id="price" min="0.01" step="0.01" readonly>
-
-        <label for="notes">ملاحظة:</label>
-        <input type="text" id="notes">
-        
-        <button onclick="addProductToInvoice()">إضافة صنف للفاتورة</button>
-        
-        <div class="invoice-buttons">
-          <button id="clearInvoiceButton" onclick="clearInvoice()">مسح الفاتورة</button>
-          <button id="printButton" onclick="printInvoice()">طباعة الفاتورة</button>
+    <div class="top-container">
+        <div class="card invoice-form-container print-hide">
+            <div class="card-content">
+                <h2>إضافة للفاتورة</h2>
+                <label for="invoiceNumberInput">رقم الفاتورة:</label>
+                <input type="text" id="invoiceNumberInput">
+                <label for="customerName">اسم الزبون:</label>
+                <input type="text" id="customerName">
+                <hr>
+                <label for="productNameInput">الصنف:</label>
+                <input type="text" id="productNameInput">
+                <label for="quantity">عدد القطع:</label>
+                <input type="number" id="quantity" min="1" value="1">
+                <label for="unit">الوحدة:</label>
+                <input type="text" id="unit">
+                <label for="price">سعر الوحدة ($):</label>
+                <input type="number" id="price" min="0.01" step="0.01" readonly>
+                <label for="notes">ملاحظة:</label>
+                <input type="text" id="notes">
+                <button onclick="addProductToInvoice()">إضافة صنف للفاتورة</button>
+                <div class="button-group">
+                    <button id="clearInvoiceButton" onclick="clearInvoice()">مسح الفاتورة</button>
+                </div>
+            </div>
         </div>
-        
-        <hr>
+
+        <div class="card item-manager print-hide">
+            <div class="card-content">
+                <h2>إدارة الأصناف والأسعار</h2>
+                <label for="newItemName">الصنف:</label>
+                <input type="text" id="newItemName">
+                <label for="newItemPrice">سعر الوحدة بالدولار:</label>
+                <input type="number" id="newItemPrice" min="0.01" step="0.01">
+                <div class="button-group">
+                    <button id="addItemBtn" onclick="saveItem()">إضافة صنف</button>
+                    <button id="clearItemsButton" onclick="clearItems()">مسح الأصناف</button>
+                </div>
+                <hr>
+                <h3>قائمة الأصناف المخزنة</h3>
+                <table id="itemsTable">
+                    <thead>
+                        <tr>
+                            <th>الصنف</th>
+                            <th>السعر</th>
+                            <th>الخيارات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    
-    <div id="invoiceHeader" class="invoice-header">
+
+    <div class="bottom-container">
+        <div class="card invoice-container">
+            <div id="invoiceHeader" class="invoice-header">
+                <div class="print-only" style="display: none;">
+                    <div style="text-align: center;">
+                        <p style="font-size: 14px; margin-bottom: 0;">هاتف: +905364253975</p>
+                        <h1 style="margin-top: 5px; font-size: 20px;">المحمود للمواد الغذائية</h1>
+                    </div>
+                    <div class="invoice-header-content">
+                        <p><strong>رقم الفاتورة:</strong> <span id="printInvoiceNumber"></span></p>
+                        <p><strong>اسم الزبون:</strong> <span id="printCustomerName"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-content">
+                <table id="invoiceTable">
+                    <thead>
+                        <tr>
+                            <th>ملاحظة</th>
+                            <th>المجموع</th>
+                            <th>السعر</th>
+                            <th>الكمية</th>
+                            <th>المادة</th>
+                            <th class="print-hide">الخيارات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4">الإجمالي الكلي:</td>
+                            <td colspan="2"><span id="totalAmount">0.00</span> دولار</td>
+                        </tr>
+                        <tr class="payment-info">
+                            <td colspan="4">المبلغ المدفوع:</td>
+                            <td colspan="2"><input type="number" id="paidAmount" min="0" value="0" oninput="calculateRemaining()"></td>
+                        </tr>
+                        <tr class="payment-info">
+                            <td colspan="4">المبلغ المتبقي:</td>
+                            <td colspan="2"><span id="remainingAmount">0.00</span> دولار</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <div class="print-btn-container print-hide">
+                <button id="printButton" onclick="printInvoice()">طباعة الفاتورة</button>
+            </div>
+        </div>
     </div>
-    
-    <table id="invoiceTable">
-        <colgroup>
-            <col style="width: 25%;">
-            <col style="width: 15%;">
-            <col style="width: 10%;">
-            <col style="width: 10%;">
-            <col style="width: 10%;">
-            <col style="width: 20%;">
-            <col class="print-hide" style="width: 10%;">
-        </colgroup>
-        <thead>
-            <tr>
-                <th>ملاحظة</th>
-                <th>المجموع</th>
-                <th>السعر</th>
-                <th>الوحدة</th>
-                <th>الكمية</th>
-                <th>المادة</th>
-                <th class="print-hide">الخيارات</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="6">الإجمالي الكلي:</td>
-                <td><span id="totalAmount">0.00</span> دولار</td>
-            </tr>
-            <tr class="payment-info">
-                <td colspan="6">المبلغ المدفوع:</td>
-                <td><input type="number" id="paidAmount" min="0" value="0" oninput="calculateRemaining()"></td>
-            </tr>
-            <tr class="payment-info">
-                <td colspan="6">المبلغ المتبقي:</td>
-                <td><span id="remainingAmount">0.00</span> دولار</td>
-            </tr>
-        </tfoot>
-    </table>
-</div>
 
 <script>
     let invoiceItems = [];
@@ -359,10 +392,11 @@
             invoiceItems = JSON.parse(invoiceItemsJSON);
             renderInvoiceTable();
         }
-        
+
         const invoiceData = JSON.parse(localStorage.getItem('invoiceHeaderData')) || {};
         document.getElementById('invoiceNumberInput').value = invoiceData.invoiceNumber || '';
         document.getElementById('customerName').value = invoiceData.customerName || '';
+        document.getElementById('paidAmount').value = invoiceData.paidAmount || '0';
 
         renderInvoiceHeader();
     }
@@ -370,15 +404,16 @@
     function saveItems() {
         localStorage.setItem('storedItems', JSON.stringify(storedItems));
     }
-    
+
     function saveInvoice() {
         localStorage.setItem('invoice', JSON.stringify(invoiceItems));
     }
-    
+
     function saveInvoiceHeader() {
         const invoiceHeaderData = {
             invoiceNumber: document.getElementById('invoiceNumberInput').value,
-            customerName: document.getElementById('customerName').value
+            customerName: document.getElementById('customerName').value,
+            paidAmount: document.getElementById('paidAmount').value
         };
         localStorage.setItem('invoiceHeaderData', JSON.stringify(invoiceHeaderData));
         renderInvoiceHeader();
@@ -391,7 +426,7 @@
             const newRow = tableBody.insertRow();
             newRow.insertCell(0).textContent = item.name;
             newRow.insertCell(1).textContent = parseFloat(item.price).toFixed(2);
-            
+
             const actionCell = newRow.insertCell(2);
             actionCell.innerHTML = `
                 <div class="action-buttons">
@@ -403,7 +438,7 @@
     }
 
     function saveItem() {
-        const newItemName = document.getElementById('newItemName').value;
+        const newItemName = document.getElementById('newItemName').value.trim();
         const newItemPrice = document.getElementById('newItemPrice').value;
         const addItemBtn = document.getElementById('addItemBtn');
 
@@ -411,29 +446,29 @@
             alert('الرجاء إدخال اسم وسعر الصنف!');
             return;
         }
-        
+
         if (editingStoredItemIndex !== -1) {
             storedItems[editingStoredItemIndex].price = parseFloat(newItemPrice);
             editingStoredItemIndex = -1;
-            addItemBtn.textContent = 'إضافة صنف جديد';
+            addItemBtn.textContent = 'إضافة صنف';
             document.getElementById('newItemName').removeAttribute('readonly');
         } else {
-            const existingItemIndex = storedItems.findIndex(item => item.name === newItemName);
+            const existingItemIndex = storedItems.findIndex(item => item.name.toLowerCase() === newItemName.toLowerCase());
             if (existingItemIndex !== -1) {
                 alert('هذا الصنف موجود بالفعل!');
                 return;
             }
-            
+
             storedItems.push({ name: newItemName, price: parseFloat(newItemPrice) });
         }
-        
+
         saveItems();
         renderItemsTable();
-        
+
         document.getElementById('newItemName').value = '';
         document.getElementById('newItemPrice').value = '';
     }
-    
+
     function editStoredItem(index) {
         const itemToEdit = storedItems[index];
         if (itemToEdit) {
@@ -444,7 +479,7 @@
             document.getElementById('addItemBtn').textContent = 'تحديث الصنف';
         }
     }
-    
+
     function deleteStoredItem(index) {
         if (confirm(`هل أنت متأكد من حذف الصنف "${storedItems[index].name}"؟`)) {
             storedItems.splice(index, 1);
@@ -452,7 +487,7 @@
             renderItemsTable();
         }
     }
-    
+
     function clearItems() {
         if (confirm('هل أنت متأكد من مسح قائمة الأصناف؟')) {
             storedItems = [];
@@ -460,25 +495,12 @@
             renderItemsTable();
         }
     }
-    
+
     function renderInvoiceHeader() {
         const invoiceNumber = document.getElementById('invoiceNumberInput').value;
         const customerName = document.getElementById('customerName').value;
-        const invoiceHeaderDiv = document.getElementById('invoiceHeader');
-
-        let headerHTML = `
-            <div style="text-align: center;">
-                <p style="font-size: 14px; margin-bottom: 0;"></p>
-                <h1 style="margin-top: 5px;">المحمود لكافة المواد الغذائية</h1>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 14px;">
-                <p style="text-align: right; margin: 0;"><strong>رقم الفاتورة:</strong> ${invoiceNumber || '---'}</p>
-                <p style="text-align: center; margin: 0;"><strong>اسم الزبون:</strong> ${customerName || '---'}</p>
-                <p style="text-align: left; margin: 0;"><strong>رقم الهاتف:</strong> +905364253975</p>
-            </div>
-            <hr class="print-hide">
-        `;
-        invoiceHeaderDiv.innerHTML = headerHTML;
+        document.getElementById('printInvoiceNumber').textContent = invoiceNumber || '---';
+        document.getElementById('printCustomerName').textContent = customerName || '---';
     }
 
     function renderInvoiceTable() {
@@ -488,15 +510,14 @@
 
         invoiceItems.forEach((item, index) => {
             const newRow = tableBody.insertRow();
-            
+
             newRow.insertCell(0).textContent = item.notes || '';
             newRow.insertCell(1).textContent = item.subtotal.toFixed(2);
             newRow.insertCell(2).textContent = parseFloat(item.price).toFixed(2);
-            newRow.insertCell(3).textContent = item.unit;
-            newRow.insertCell(4).textContent = item.quantity;
-            newRow.insertCell(5).textContent = item.name;
-            
-            const actionCell = newRow.insertCell(6);
+            newRow.insertCell(3).textContent = `${item.quantity} ${item.unit}`;
+            newRow.insertCell(4).textContent = item.name;
+
+            const actionCell = newRow.insertCell(5);
             actionCell.classList.add('print-hide');
             actionCell.innerHTML = `
                 <div class="action-buttons">
@@ -504,40 +525,41 @@
                     <button class="delete-btn" onclick="deleteItem(${index})">🗑️</button>
                 </div>
             `;
-            
+
             total += item.subtotal;
         });
-        
+
         document.getElementById('totalAmount').textContent = total.toFixed(2);
         calculateRemaining();
         renderInvoiceHeader();
     }
-    
+
     function calculateRemaining() {
         const totalAmount = parseFloat(document.getElementById('totalAmount').textContent);
         const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
         const remaining = totalAmount - paidAmount;
         document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
+        saveInvoiceHeader();
     }
 
     function addProductToInvoice() {
-        const productName = document.getElementById('productNameInput').value;
+        const productName = document.getElementById('productNameInput').value.trim();
         const quantityToAdd = parseFloat(document.getElementById('quantity').value);
-        const unit = document.getElementById('unit').value;
-        const notes = document.getElementById('notes').value;
+        const unit = document.getElementById('unit').value.trim();
+        const notes = document.getElementById('notes').value.trim();
 
         if (!productName || isNaN(quantityToAdd) || quantityToAdd <= 0) {
             alert('الرجاء إدخال اسم صنف وعدد قطع صحيح!');
             return;
         }
 
-        const storedItem = storedItems.find(item => item.name === productName);
+        const storedItem = storedItems.find(item => item.name.toLowerCase() === productName.toLowerCase());
 
         if (!storedItem) {
             alert(`الصنف "${productName}" غير موجود في قائمة الأصناف.`);
             return;
         }
-        
+
         const subtotal = quantityToAdd * storedItem.price;
 
         const newItem = {
@@ -581,7 +603,7 @@
             invoiceItems.splice(index, 1);
             saveInvoice();
             renderInvoiceTable();
-            
+
             alert('تم نقل بيانات الصنف إلى الأعلى للتعديل. بعد التعديل، اضغط "إضافة صنف للفاتورة".');
         }
     }
@@ -594,16 +616,16 @@
             renderInvoiceTable();
             document.getElementById('invoiceNumberInput').value = '';
             document.getElementById('customerName').value = '';
+            document.getElementById('paidAmount').value = '0';
         }
     }
-    
+
     function printInvoice() {
         window.print();
     }
-    
+
     document.getElementById('invoiceNumberInput').addEventListener('input', saveInvoiceHeader);
     document.getElementById('customerName').addEventListener('input', saveInvoiceHeader);
 </script>
-
 </body>
 </html>
