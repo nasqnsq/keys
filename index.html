@@ -14,7 +14,6 @@
             direction: rtl;
             font-size: 10px;
             
-            /* تعديل جديد: جعل الجسم حاوية مرنة */
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -24,7 +23,7 @@
         .main-header {
             text-align: center;
             margin-bottom: 5px;
-            flex-shrink: 0; /* منع تصغير العنوان */
+            flex-shrink: 0;
         }
 
         .top-container {
@@ -32,15 +31,15 @@
             flex-direction: row-reverse;
             gap: 5px;
             margin-bottom: 5px;
-            flex-shrink: 0; /* تعديل جديد: منع تصغير الحاوية العلوية */
-            height: auto; /* تعديل جديد: إزالة الارتفاع الثابت */
+            flex-shrink: 0;
+            height: auto;
         }
 
         .bottom-container {
             display: flex;
             flex-direction: column;
-            flex-grow: 1; /* تعديل جديد: السماح للحاوية السفلية بالنمو لملء المساحة */
-            height: auto; /* تعديل جديد: إزالة الارتفاع الثابت */
+            flex-grow: 1;
+            height: auto;
         }
 
         .card {
@@ -71,6 +70,12 @@
             font-size: 12px;
             color: #2c3e50;
             margin: 0 0 5px 0;
+            text-align: right;
+        }
+
+        h3 {
+            font-size: 10px;
+            margin: 5px 0;
             text-align: right;
         }
 
@@ -214,6 +219,11 @@
             margin: 2px 0;
             text-align: center;
         }
+        
+        /* تنسيقات خاصة بالبحث */
+        #searchItemsInput {
+            margin-bottom: 5px;
+        }
 
         /* تنسيقات خاصة بالطباعة */
         @media print {
@@ -313,6 +323,7 @@
                 </div>
                 <hr>
                 <h3>قائمة الأصناف المخزنة</h3>
+                <input type="text" id="searchItemsInput" oninput="filterItems()" placeholder="بحث باسم الصنف...">
                 <table id="itemsTable">
                     <thead>
                         <tr>
@@ -419,10 +430,22 @@
         renderInvoiceHeader();
     }
 
-    function renderItemsTable() {
+    // دالة جديدة لتصفية الأصناف
+    function filterItems() {
+        const searchTerm = document.getElementById('searchItemsInput').value.toLowerCase();
+        renderItemsTable(searchTerm);
+    }
+
+    // تعديل على دالة renderItemsTable لتقبل معامل البحث
+    function renderItemsTable(searchTerm = '') {
         const tableBody = document.querySelector('#itemsTable tbody');
         tableBody.innerHTML = '';
-        storedItems.forEach((item, index) => {
+        
+        const filteredItems = storedItems.filter(item => 
+            item.name.toLowerCase().includes(searchTerm)
+        );
+
+        filteredItems.forEach((item, index) => {
             const newRow = tableBody.insertRow();
             newRow.insertCell(0).textContent = item.name;
             newRow.insertCell(1).textContent = parseFloat(item.price).toFixed(2);
@@ -430,8 +453,8 @@
             const actionCell = newRow.insertCell(2);
             actionCell.innerHTML = `
                 <div class="action-buttons">
-                    <button class="edit-stored-btn" onclick="editStoredItem(${index})">تعديل</button>
-                    <button class="delete-stored-btn" onclick="deleteStoredItem(${index})">حذف</button>
+                    <button class="edit-stored-btn" onclick="editStoredItem(${storedItems.indexOf(item)})">تعديل</button>
+                    <button class="delete-stored-btn" onclick="deleteStoredItem(${storedItems.indexOf(item)})">حذف</button>
                 </div>
             `;
         });
