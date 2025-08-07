@@ -220,7 +220,6 @@
             text-align: center;
         }
         
-        /* تنسيقات خاصة بالبحث */
         #searchItemsInput {
             margin-bottom: 5px;
         }
@@ -293,16 +292,16 @@
                 <input type="text" id="customerName">
                 <hr>
                 <label for="productNameInput">الصنف:</label>
-                <input type="text" id="productNameInput">
+                <input type="text" id="productNameInput" oninput="updatePrice()">
                 <label for="quantity">عدد القطع:</label>
-                <input type="number" id="quantity" min="1" value="1">
+                <input type="number" id="quantity" min="1" value="1" oninput="updateInvoicePreview()">
                 <label for="unit">الوحدة:</label>
-                <input type="text" id="unit">
+                <input type="text" id="unit" oninput="updateInvoicePreview()">
                 <label for="price">سعر الوحدة ($):</label>
                 <input type="number" id="price" min="0.01" step="0.01" readonly>
                 <label for="notes">ملاحظة:</label>
-                <input type="text" id="notes">
-                <button onclick="addProductToInvoice()">إضافة صنف للفاتورة</button>
+                <input type="text" id="notes" oninput="updateInvoicePreview()">
+                <button onclick="saveProductToInvoice()">إضافة صنف للفاتورة</button>
                 <div class="button-group">
                     <button id="clearInvoiceButton" onclick="clearInvoice()">مسح الفاتورة</button>
                     <button id="printButton" onclick="printInvoice()">طباعة الفاتورة</button>
@@ -365,9 +364,17 @@
                             <th class="print-hide">الخيارات</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="invoiceTableBody">
                         </tbody>
                     <tfoot>
+                        <tr id="previewRow" style="color: #6c757d; background-color: #e9ecef; display: none;">
+                            <td id="previewNotes"></td>
+                            <td id="previewSubtotal"></td>
+                            <td id="previewPrice"></td>
+                            <td id="previewQuantity"></td>
+                            <td id="previewName"></td>
+                            <td class="print-hide"></td>
+                        </tr>
                         <tr>
                             <td colspan="4">الإجمالي الكلي:</td>
                             <td colspan="2"><span id="totalAmount">0.00</span> دولار</td>
@@ -430,13 +437,11 @@
         renderInvoiceHeader();
     }
 
-    // دالة جديدة لتصفية الأصناف
     function filterItems() {
         const searchTerm = document.getElementById('searchItemsInput').value.toLowerCase();
         renderItemsTable(searchTerm);
     }
 
-    // تعديل على دالة renderItemsTable لتقبل معامل البحث
     function renderItemsTable(searchTerm = '') {
         const tableBody = document.querySelector('#itemsTable tbody');
         tableBody.innerHTML = '';
@@ -527,13 +532,12 @@
     }
 
     function renderInvoiceTable() {
-        const tableBody = document.querySelector('#invoiceTable tbody');
+        const tableBody = document.getElementById('invoiceTableBody');
         tableBody.innerHTML = '';
         let total = 0;
 
         invoiceItems.forEach((item, index) => {
             const newRow = tableBody.insertRow();
-
             newRow.insertCell(0).textContent = item.notes || '';
             newRow.insertCell(1).textContent = item.subtotal.toFixed(2);
             newRow.insertCell(2).textContent = parseFloat(item.price).toFixed(2);
@@ -555,41 +559,67 @@
         document.getElementById('totalAmount').textContent = total.toFixed(2);
         calculateRemaining();
         renderInvoiceHeader();
+        updateInvoicePreview();
     }
 
-    function calculateRemaining() {
-        const totalAmount = parseFloat(document.getElementById('totalAmount').textContent);
-        const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
-        const remaining = totalAmount - paidAmount;
-        document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
-        saveInvoiceHeader();
+    // دالة لتحديث السعر تلقائياً
+    function updatePrice() {
+        const productName = document.getElementById('productNameInput').value.trim();
+        const storedItem = storedItems.find(item => item.name.toLowerCase() === productName.toLowerCase());
+        const priceInput = document.getElementById('price');
+        
+        if (storedItem) {
+            priceInput.value = storedItem.price;
+        } else {
+            priceInput.value = '';
+        }
+        updateInvoicePreview();
     }
 
-    function addProductToInvoice() {
+    // دالة لتحديث صف المعاينة
+    function updateInvoicePreview() {
         const productName = document.getElementById('productNameInput').value.trim();
         const quantityToAdd = parseFloat(document.getElementById('quantity').value);
         const unit = document.getElementById('unit').value.trim();
         const notes = document.getElementById('notes').value.trim();
+        const price = parseFloat(document.getElementById('price').value);
+        
+        const previewRow = document.getElementById('previewRow');
+        
+        if (productName && !isNaN(quantityToAdd) && quantityToAdd > 0 && price) {
+            const subtotal = quantityToAdd * price;
+            
+            document.getElementById('previewName').textContent = productName;
+            document.getElementById('previewQuantity').textContent = `${quantityToAdd} ${unit}`;
+            document.getElementById('previewPrice').textContent = price.toFixed(2);
+            document.getElementById('previewSubtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('previewNotes').textContent = notes;
+            previewRow.style.display = '';
+        } else {
+            previewRow.style.display = 'none';
+        }
+    }
+    
+    // دالة حفظ الصنف إلى الفاتورة (عند الضغط على الزر)
+    function saveProductToInvoice() {
+        const productName = document.getElementById('productNameInput').value.trim();
+        const quantityToAdd = parseFloat(document.getElementById('quantity').value);
+        const unit = document.getElementById('unit').value.trim();
+        const notes = document.getElementById('notes').value.trim();
+        const price = parseFloat(document.getElementById('price').value);
 
-        if (!productName || isNaN(quantityToAdd) || quantityToAdd <= 0) {
-            alert('الرجاء إدخال اسم صنف وعدد قطع صحيح!');
+        if (!productName || isNaN(quantityToAdd) || quantityToAdd <= 0 || !price) {
+            alert('الرجاء إدخال اسم صنف، عدد قطع صحيح وسعر!');
             return;
         }
 
-        const storedItem = storedItems.find(item => item.name.toLowerCase() === productName.toLowerCase());
-
-        if (!storedItem) {
-            alert(`الصنف "${productName}" غير موجود في قائمة الأصناف.`);
-            return;
-        }
-
-        const subtotal = quantityToAdd * storedItem.price;
+        const subtotal = quantityToAdd * price;
 
         const newItem = {
-            name: storedItem.name,
+            name: productName,
             quantity: quantityToAdd,
             unit: unit,
-            price: storedItem.price,
+            price: price,
             subtotal: subtotal,
             notes: notes
         };
@@ -604,6 +634,15 @@
         document.getElementById('unit').value = '';
         document.getElementById('price').value = '';
         document.getElementById('notes').value = '';
+        document.getElementById('previewRow').style.display = 'none';
+    }
+
+    function calculateRemaining() {
+        const totalAmount = parseFloat(document.getElementById('totalAmount').textContent);
+        const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
+        const remaining = totalAmount - paidAmount;
+        document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
+        saveInvoiceHeader();
     }
 
     function deleteItem(index) {
@@ -649,6 +688,10 @@
 
     document.getElementById('invoiceNumberInput').addEventListener('input', saveInvoiceHeader);
     document.getElementById('customerName').addEventListener('input', saveInvoiceHeader);
+    document.getElementById('productNameInput').addEventListener('input', updatePrice);
+    document.getElementById('quantity').addEventListener('input', updateInvoicePreview);
+    document.getElementById('unit').addEventListener('input', updateInvoicePreview);
+    document.getElementById('notes').addEventListener('input', updateInvoicePreview);
 </script>
 </body>
 </html>
