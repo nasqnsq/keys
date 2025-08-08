@@ -4,6 +4,7 @@
     <title>المحمود للمواد الغذائية</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -100,7 +101,7 @@
             border-top: 1px solid #eee;
         }
 
-        input[type="text"], input[type="number"] {
+        input[type="text"], input[type="number"], select {
             width: 100%;
             padding: 3px;
             margin-top: 2px;
@@ -224,6 +225,32 @@
             margin-bottom: 5px;
         }
 
+        /* تنسيقات Select2 لتتناسب مع التصميم */
+        .select2-container .select2-selection--single {
+            height: 25px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 23px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 18px;
+            padding-right: 8px; /* لتحسين المسافة من اليمين */
+        }
+        .select2-container .select2-selection--single .select2-selection__clear {
+            float: left; /* لتحسين موضع زر المسح */
+        }
+        .select2-dropdown {
+            font-size: 9px;
+            text-align: right;
+            direction: rtl;
+        }
+        .select2-search__field {
+            font-size: 9px;
+        }
+        
         /* تنسيقات خاصة بالطباعة */
         @media print {
             .print-hide {
@@ -291,8 +318,9 @@
                 <label for="customerName">اسم الزبون:</label>
                 <input type="text" id="customerName">
                 <hr>
-                <label for="productNameInput">الصنف:</label>
-                <input type="text" id="productNameInput" oninput="updatePrice()">
+                <label for="productNameSelect">الصنف:</label>
+                <select id="productNameSelect"></select>
+
                 <label for="quantity">عدد القطع:</label>
                 <input type="number" id="quantity" min="1" value="1" oninput="updateInvoicePreview()">
                 <label for="unit">الوحدة:</label>
@@ -393,6 +421,9 @@
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
     let invoiceItems = [];
     let storedItems = [];
@@ -404,6 +435,8 @@
             storedItems = JSON.parse(storedItemsJSON);
         }
         renderItemsTable();
+        populateProductSelect();
+        initSelect2(); // استدعاء الدالة لتهيئة Select2
 
         const invoiceItemsJSON = localStorage.getItem('invoice');
         if (invoiceItemsJSON) {
@@ -419,8 +452,20 @@
         renderInvoiceHeader();
     }
 
+    function initSelect2() {
+        $('#productNameSelect').select2({
+            placeholder: 'ابحث أو اختر صنفًا...',
+            dir: "rtl"
+        });
+        // إضافة حدث عند اختيار صنف جديد
+        $('#productNameSelect').on('change', function() {
+            updatePrice();
+        });
+    }
+
     function saveItems() {
         localStorage.setItem('storedItems', JSON.stringify(storedItems));
+        populateProductSelect();
     }
 
     function saveInvoice() {
@@ -561,11 +606,28 @@
         renderInvoiceHeader();
         updateInvoicePreview();
     }
+    
+    // دالة لملء القائمة المنسدلة بالأصناف المخزنة
+    function populateProductSelect() {
+        const select = document.getElementById('productNameSelect');
+        // تفريغ القائمة الحالية وإعادة بنائها
+        select.innerHTML = '<option></option>';
+        storedItems.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.name;
+            option.textContent = item.name;
+            select.appendChild(option);
+        });
+        
+        // إعادة تهيئة Select2 بعد تحديث الخيارات
+        $('#productNameSelect').val(null).trigger('change');
+        updatePrice(); 
+    }
 
-    // دالة لتحديث السعر تلقائياً
+    // دالة لتحديث السعر والمعاينة
     function updatePrice() {
-        const productName = document.getElementById('productNameInput').value.trim();
-        const storedItem = storedItems.find(item => item.name.toLowerCase() === productName.toLowerCase());
+        const productName = $('#productNameSelect').val();
+        const storedItem = storedItems.find(item => item.name === productName);
         const priceInput = document.getElementById('price');
         
         if (storedItem) {
@@ -576,9 +638,8 @@
         updateInvoicePreview();
     }
 
-    // دالة لتحديث صف المعاينة
     function updateInvoicePreview() {
-        const productName = document.getElementById('productNameInput').value.trim();
+        const productName = $('#productNameSelect').val();
         const quantityToAdd = parseFloat(document.getElementById('quantity').value);
         const unit = document.getElementById('unit').value.trim();
         const notes = document.getElementById('notes').value.trim();
@@ -600,16 +661,15 @@
         }
     }
     
-    // دالة حفظ الصنف إلى الفاتورة (عند الضغط على الزر)
     function saveProductToInvoice() {
-        const productName = document.getElementById('productNameInput').value.trim();
+        const productName = $('#productNameSelect').val();
         const quantityToAdd = parseFloat(document.getElementById('quantity').value);
         const unit = document.getElementById('unit').value.trim();
         const notes = document.getElementById('notes').value.trim();
         const price = parseFloat(document.getElementById('price').value);
 
         if (!productName || isNaN(quantityToAdd) || quantityToAdd <= 0 || !price) {
-            alert('الرجاء إدخال اسم صنف، عدد قطع صحيح وسعر!');
+            alert('الرجاء اختيار صنف، وإدخال عدد قطع صحيح وسعر!');
             return;
         }
 
@@ -629,7 +689,7 @@
         saveInvoiceHeader();
         renderInvoiceTable();
 
-        document.getElementById('productNameInput').value = '';
+        $('#productNameSelect').val(null).trigger('change');
         document.getElementById('quantity').value = '1';
         document.getElementById('unit').value = '';
         document.getElementById('price').value = '';
@@ -656,7 +716,8 @@
     function editItem(index) {
         const itemToEdit = invoiceItems[index];
         if (itemToEdit) {
-            document.getElementById('productNameInput').value = itemToEdit.name;
+            // استخدام Select2 لضبط القيمة
+            $('#productNameSelect').val(itemToEdit.name).trigger('change');
             document.getElementById('quantity').value = itemToEdit.quantity;
             document.getElementById('unit').value = itemToEdit.unit;
             document.getElementById('price').value = itemToEdit.price;
@@ -688,7 +749,6 @@
 
     document.getElementById('invoiceNumberInput').addEventListener('input', saveInvoiceHeader);
     document.getElementById('customerName').addEventListener('input', saveInvoiceHeader);
-    document.getElementById('productNameInput').addEventListener('input', updatePrice);
     document.getElementById('quantity').addEventListener('input', updateInvoicePreview);
     document.getElementById('unit').addEventListener('input', updateInvoicePreview);
     document.getElementById('notes').addEventListener('input', updateInvoicePreview);
