@@ -429,17 +429,21 @@
     let storedItems = [];
     let editingStoredItemIndex = -1;
 
-    // **تنبيه:** قم بتغيير هذا الرابط إلى رابط ملف api.php على استضافتك
-    const API_URL = 'https://almahmoud.infy.uk/api.php';
-
     function loadData() {
-        loadStoredItems();
-        // تحميل بيانات الفاتورة مؤقتًا من التخزين المحلي
+        const storedItemsJSON = localStorage.getItem('storedItems');
+        if (storedItemsJSON) {
+            storedItems = JSON.parse(storedItemsJSON);
+        }
+        renderItemsTable();
+        populateProductSelect();
+        initSelect2(); // استدعاء الدالة لتهيئة Select2
+
         const invoiceItemsJSON = localStorage.getItem('invoice');
         if (invoiceItemsJSON) {
             invoiceItems = JSON.parse(invoiceItemsJSON);
             renderInvoiceTable();
         }
+
         const invoiceData = JSON.parse(localStorage.getItem('invoiceHeaderData')) || {};
         document.getElementById('invoiceNumberInput').value = invoiceData.invoiceNumber || '';
         document.getElementById('customerName').value = invoiceData.customerName || '';
@@ -453,29 +457,34 @@
             placeholder: 'ابحث أو اختر صنفًا...',
             dir: "rtl"
         });
+        // إضافة حدث عند اختيار صنف جديد
         $('#productNameSelect').on('change', function() {
             updatePrice();
         });
     }
 
-    function loadStoredItems() {
-        fetch(`${API_URL}?action=getAllItems`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                storedItems = data.items;
-                renderItemsTable();
-                populateProductSelect();
-                initSelect2();
-            } else {
-                console.error("فشل تحميل الأصناف:", data.message);
-                alert("فشل تحميل الأصناف من الخادم.");
-            }
-        })
-        .catch(error => {
-            console.error("خطأ في الاتصال بالخادم:", error);
-            alert("حدث خطأ في الاتصال بالخادم.");
-        });
+    function saveItems() {
+        localStorage.setItem('storedItems', JSON.stringify(storedItems));
+        populateProductSelect();
+    }
+
+    function saveInvoice() {
+        localStorage.setItem('invoice', JSON.stringify(invoiceItems));
+    }
+
+    function saveInvoiceHeader() {
+        const invoiceHeaderData = {
+            invoiceNumber: document.getElementById('invoiceNumberInput').value,
+            customerName: document.getElementById('customerName').value,
+            paidAmount: document.getElementById('paidAmount').value
+        };
+        localStorage.setItem('invoiceHeaderData', JSON.stringify(invoiceHeaderData));
+        renderInvoiceHeader();
+    }
+
+    function filterItems() {
+        const searchTerm = document.getElementById('searchItemsInput').value.toLowerCase();
+        renderItemsTable(searchTerm);
     }
 
     function renderItemsTable(searchTerm = '') {
@@ -483,7 +492,7 @@
         tableBody.innerHTML = '';
         
         const filteredItems = storedItems.filter(item => 
-            item.name.toLowerCase().includes(searchTerm.toLowerCase())
+            item.name.toLowerCase().includes(searchTerm)
         );
 
         filteredItems.forEach((item, index) => {
@@ -494,8 +503,8 @@
             const actionCell = newRow.insertCell(2);
             actionCell.innerHTML = `
                 <div class="action-buttons">
-                    <button class="edit-stored-btn" onclick="editStoredItem(${item.id})">تعديل</button>
-                    <button class="delete-stored-btn" onclick="deleteStoredItem(${item.id})">حذف</button>
+                    <button class="edit-stored-btn" onclick="editStoredItem(${storedItems.indexOf(item)})">تعديل</button>
+                    <button class="delete-stored-btn" onclick="deleteStoredItem(${storedItems.indexOf(item)})">حذف</button>
                 </div>
             `;
         });
@@ -511,43 +520,32 @@
             return;
         }
 
-        const method = editingStoredItemIndex !== -1 ? 'PUT' : 'POST';
-        const url = editingStoredItemIndex !== -1 ? `${API_URL}?action=updateItem&id=${editingStoredItemIndex}` : `${API_URL}?action=addItem`;
-
-        const itemData = {
-            name: newItemName,
-            price: parseFloat(newItemPrice)
-        };
-
-        fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(itemData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                editingStoredItemIndex = -1;
-                addItemBtn.textContent = 'إضافة صنف';
-                document.getElementById('newItemName').removeAttribute('readonly');
-                document.getElementById('newItemName').value = '';
-                document.getElementById('newItemPrice').value = '';
-                loadStoredItems();
-            } else {
-                alert('فشل العملية: ' + data.message);
+        if (editingStoredItemIndex !== -1) {
+            storedItems[editingStoredItemIndex].price = parseFloat(newItemPrice);
+            editingStoredItemIndex = -1;
+            addItemBtn.textContent = 'إضافة صنف';
+            document.getElementById('newItemName').removeAttribute('readonly');
+        } else {
+            const existingItemIndex = storedItems.findIndex(item => item.name.toLowerCase() === newItemName.toLowerCase());
+            if (existingItemIndex !== -1) {
+                alert('هذا الصنف موجود بالفعل!');
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ في الاتصال بالخادم.');
-        });
+
+            storedItems.push({ name: newItemName, price: parseFloat(newItemPrice) });
+        }
+
+        saveItems();
+        renderItemsTable();
+
+        document.getElementById('newItemName').value = '';
+        document.getElementById('newItemPrice').value = '';
     }
 
-    function editStoredItem(itemId) {
-        const itemToEdit = storedItems.find(item => item.id === itemId);
+    function editStoredItem(index) {
+        const itemToEdit = storedItems[index];
         if (itemToEdit) {
-            editingStoredItemIndex = itemId;
+            editingStoredItemIndex = index;
             document.getElementById('newItemName').value = itemToEdit.name;
             document.getElementById('newItemPrice').value = itemToEdit.price;
             document.getElementById('newItemName').setAttribute('readonly', 'readonly');
@@ -555,41 +553,19 @@
         }
     }
 
-    function deleteStoredItem(itemId) {
-        if (confirm(`هل أنت متأكد من حذف الصنف؟`)) {
-            fetch(`${API_URL}?action=deleteItem&id=${itemId}`, { method: 'DELETE' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    loadStoredItems();
-                } else {
-                    alert('فشل الحذف: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('حدث خطأ في الاتصال بالخادم.');
-            });
+    function deleteStoredItem(index) {
+        if (confirm(`هل أنت متأكد من حذف الصنف "${storedItems[index].name}"؟`)) {
+            storedItems.splice(index, 1);
+            saveItems();
+            renderItemsTable();
         }
     }
 
     function clearItems() {
-        if (confirm('هل أنت متأكد من مسح قائمة الأصناف؟ سيتم حذف جميع الأصناف من الخادم.')) {
-            fetch(`${API_URL}?action=clearAllItems`, { method: 'DELETE' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    loadStoredItems();
-                } else {
-                    alert('فشل مسح الأصناف: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('حدث خطأ في الاتصال بالخادم.');
-            });
+        if (confirm('هل أنت متأكد من مسح قائمة الأصناف؟')) {
+            storedItems = [];
+            saveItems();
+            renderItemsTable();
         }
     }
 
@@ -621,6 +597,7 @@
                     <button class="delete-btn" onclick="deleteItem(${index})">🗑️</button>
                 </div>
             `;
+
             total += item.subtotal;
         });
 
@@ -630,8 +607,10 @@
         updateInvoicePreview();
     }
     
+    // دالة لملء القائمة المنسدلة بالأصناف المخزنة
     function populateProductSelect() {
         const select = document.getElementById('productNameSelect');
+        // تفريغ القائمة الحالية وإعادة بنائها
         select.innerHTML = '<option></option>';
         storedItems.forEach(item => {
             const option = document.createElement('option');
@@ -640,10 +619,12 @@
             select.appendChild(option);
         });
         
+        // إعادة تهيئة Select2 بعد تحديث الخيارات
         $('#productNameSelect').val(null).trigger('change');
         updatePrice(); 
     }
 
+    // دالة لتحديث السعر والمعاينة
     function updatePrice() {
         const productName = $('#productNameSelect').val();
         const storedItem = storedItems.find(item => item.name === productName);
@@ -735,6 +716,7 @@
     function editItem(index) {
         const itemToEdit = invoiceItems[index];
         if (itemToEdit) {
+            // استخدام Select2 لضبط القيمة
             $('#productNameSelect').val(itemToEdit.name).trigger('change');
             document.getElementById('quantity').value = itemToEdit.quantity;
             document.getElementById('unit').value = itemToEdit.unit;
@@ -747,22 +729,6 @@
 
             alert('تم نقل بيانات الصنف إلى الأعلى للتعديل. بعد التعديل، اضغط "إضافة صنف للفاتورة".');
         }
-    }
-
-    function saveInvoice() {
-        // نستخدم التخزين المحلي للفاتورة مؤقتًا لتجنب التعقيد
-        localStorage.setItem('invoice', JSON.stringify(invoiceItems));
-    }
-
-    function saveInvoiceHeader() {
-        // نستخدم التخزين المحلي لبيانات رأس الفاتورة مؤقتًا
-        const invoiceHeaderData = {
-            invoiceNumber: document.getElementById('invoiceNumberInput').value,
-            customerName: document.getElementById('customerName').value,
-            paidAmount: document.getElementById('paidAmount').value
-        };
-        localStorage.setItem('invoiceHeaderData', JSON.stringify(invoiceHeaderData));
-        renderInvoiceHeader();
     }
 
     function clearInvoice() {
